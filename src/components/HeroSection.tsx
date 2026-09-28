@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, ChevronDown, CheckCircle } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
+import { HERO_IMAGE } from '../data/defaultWeddingData';
 
 interface HeroSectionProps {
   config: WeddingConfig;
@@ -54,7 +55,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, onOpenCalendar
       {/* Background Hero Image with measured scrim */}
       <div className="absolute inset-0 z-0">
         <img
-          src={config.gallery[0]?.url || '/src/assets/images/hero_wedding_couple_1790610979338.jpg'}
+          src={config.gallery[0]?.url || HERO_IMAGE}
           alt={`${config.groom.nickName} & ${config.bride.nickName} Wedding`}
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center filter brightness-[0.88] dark:brightness-[0.65] transition-transform duration-1000 scale-100"

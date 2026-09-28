@@ -1,23 +1,12 @@
-import { WeddingConfig, RSVPRecord } from '../types/wedding';
+import type { WeddingConfig } from '../../../src/types/wedding';
 
-// Import bundled assets so Vite fingerprints and emits them into the production build
-import heroImage from '../assets/images/hero_wedding_couple_1790610979338.jpg';
-import groomImage from '../assets/images/groom_portrait_1790611004426.jpg';
-import brideImage from '../assets/images/bride_portrait_1790611016646.jpg';
-import galleryMomentsImage from '../assets/images/gallery_wedding_moments_1790611031670.jpg';
-import venueAmbianceImage from '../assets/images/wedding_venue_ambiance_1790611045766.jpg';
-
-export const HERO_IMAGE = heroImage;
-export const GROOM_IMAGE = groomImage;
-export const BRIDE_IMAGE = brideImage;
-export const GALLERY_MOMENTS = galleryMomentsImage;
-export const VENUE_AMBIANCE = venueAmbianceImage;
-
-export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
+// Self-contained server-side default config (no asset imports — the function
+// bundler cannot resolve binary files). Asset URLs are filled by the client.
+const SERVER_DEFAULT_WEDDING_CONFIG: WeddingConfig = {
   groom: {
     fullName: 'Raden Arya Pratama, S.T.',
     nickName: 'Arya',
-    photoUrl: GROOM_IMAGE,
+    photoUrl: '',
     fatherName: 'Bpk. Ir. Bambang Hermanto',
     motherName: 'Ibu Hj. Siti Nurhasanah',
     childOrder: 'Putra Pertama dari',
@@ -27,7 +16,7 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
   bride: {
     fullName: 'Maya Faradiba Putri, S.Ds.',
     nickName: 'Maya',
-    photoUrl: BRIDE_IMAGE,
+    photoUrl: '',
     fatherName: 'Bpk. H. Tri Nugroho, S.E.',
     motherName: 'Ibu Ratna Dewi Wardani',
     childOrder: 'Putri Kedua dari',
@@ -126,31 +115,31 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
   gallery: [
     {
       id: 'g1',
-      url: HERO_IMAGE,
+      url: '',
       caption: 'Langkah pertama menuju lembaran baru bersama.',
       category: 'prewedding',
     },
     {
       id: 'g2',
-      url: GALLERY_MOMENTS,
+      url: '',
       caption: 'Tawa dan kehangatan di tengah taman botani rindang.',
       category: 'prewedding',
     },
     {
       id: 'g3',
-      url: VENUE_AMBIANCE,
+      url: '',
       caption: 'Ruang penuh cinta tempat ikrar suci akan diabadikan.',
       category: 'venue',
     },
     {
       id: 'g4',
-      url: BRIDE_IMAGE,
+      url: '',
       caption: 'Senyuman penuh ketulusan sang calon mempelai wanita.',
       category: 'ceremony',
     },
     {
       id: 'g5',
-      url: GROOM_IMAGE,
+      url: '',
       caption: 'Tekad tulus sang calon mempelai pria untuk masa depan.',
       category: 'ceremony',
     },
@@ -177,37 +166,5 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
   ],
 };
 
-export const INITIAL_RSVPS: RSVPRecord[] = [
-  {
-    id: 'rsvp-1',
-    guestName: 'dr. Anisa & Keluarga',
-    attendance: 'hadir',
-    guestCount: 2,
-    message: 'Selamat berbahagia untuk Arya dan Maya! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah. Lancar sampai hari H yaa!',
-    createdAt: '2026-09-27T10:15:00Z',
-  },
-  {
-    id: 'rsvp-2',
-    guestName: 'Ferry Pratama (Alumni ITB)',
-    attendance: 'hadir',
-    guestCount: 1,
-    message: 'Selamat menempuh hidup baru sahabatku Arya! Turut berbahagia untuk kalian berdua.',
-    createdAt: '2026-09-26T14:40:00Z',
-  },
-  {
-    id: 'rsvp-3',
-    guestName: 'Rina Kusuma & Rekan Desain',
-    attendance: 'hadir',
-    guestCount: 3,
-    message: 'Happy wedding Maya cantik & Mas Arya! Semoga pernikahannya diberkahi kebahagiaan dan rezeki yang melimpah selalu.',
-    createdAt: '2026-09-25T09:20:00Z',
-  },
-  {
-    id: 'rsvp-4',
-    guestName: 'Bambang Soediro (Kerabat Surabaya)',
-    attendance: 'tidak_hadir',
-    guestCount: 0,
-    message: 'Mohon maaf belum bisa hadir langsung karena dinas luar kota, namun doa restu kami sekeluarga selalu menyertai kedua mempelai.',
-    createdAt: '2026-09-24T18:05:00Z',
-  },
-];
+
+export const SERVER_DEFAULTS = SERVER_DEFAULT_WEDDING_CONFIG as WeddingConfig;
