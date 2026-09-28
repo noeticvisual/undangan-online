@@ -1,11 +1,17 @@
 import { WeddingConfig, RSVPRecord } from '../types/wedding';
 
-// Asset paths from generation
-export const HERO_IMAGE = '/src/assets/images/hero_wedding_couple_1790610979338.jpg';
-export const GROOM_IMAGE = '/src/assets/images/groom_portrait_1790611004426.jpg';
-export const BRIDE_IMAGE = '/src/assets/images/bride_portrait_1790611016646.jpg';
-export const GALLERY_MOMENTS = '/src/assets/images/gallery_wedding_moments_1790611031670.jpg';
-export const VENUE_AMBIANCE = '/src/assets/images/wedding_venue_ambiance_1790611045766.jpg';
+// Import bundled assets so Vite fingerprints and emits them into the production build
+import heroImage from '../assets/images/hero_wedding_couple_1790610979338.jpg';
+import groomImage from '../assets/images/groom_portrait_1790611004426.jpg';
+import brideImage from '../assets/images/bride_portrait_1790611016646.jpg';
+import galleryMomentsImage from '../assets/images/gallery_wedding_moments_1790611031670.jpg';
+import venueAmbianceImage from '../assets/images/wedding_venue_ambiance_1790611045766.jpg';
+
+export const HERO_IMAGE = heroImage;
+export const GROOM_IMAGE = groomImage;
+export const BRIDE_IMAGE = brideImage;
+export const GALLERY_MOMENTS = galleryMomentsImage;
+export const VENUE_AMBIANCE = venueAmbianceImage;
 
 export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
   groom: {
