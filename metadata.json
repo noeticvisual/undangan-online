@@ -1,0 +1,6 @@
+{
+  "name": "Niskala Wedding - Undangan Pernikahan Online",
+  "description": "Website undangan pernikahan digital interaktif dan elegan dengan RSVP, galeri foto, amplop digital, maps, dan musik.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
