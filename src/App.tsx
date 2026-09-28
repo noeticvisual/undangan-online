@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { WeddingConfig, RSVPRecord, WeddingEvent } from './types/wedding';
 import { DEFAULT_WEDDING_CONFIG, INITIAL_RSVPS } from './data/defaultWeddingData';
 import { weddingMusicEngine } from './services/audioPlayer';
+import { rsvpService } from './services/rsvpService';
 import { OpeningEnvelopeModal } from './components/OpeningEnvelopeModal';
 import { HeaderNavbar } from './components/HeaderNavbar';
 import { HeroSection } from './components/HeroSection';
@@ -65,16 +66,27 @@ export default function App() {
     return DEFAULT_WEDDING_CONFIG;
   });
 
-  // 2. RSVP records state with localStorage persistence
-  const [rsvps, setRsvps] = useState<RSVPRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem('niskala_wedding_rsvps');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // Fallback
-    }
-    return INITIAL_RSVPS;
-  });
+  // 2. RSVP records state - now from Supabase
+  const [rsvps, setRsvps] = useState<RSVPRecord[]>(INITIAL_RSVPS);
+  const [isLoadingRsvps, setIsLoadingRsvps] = useState(true);
+
+  // Fetch RSVPs from Supabase on mount
+  useEffect(() => {
+    const fetchRsvps = async () => {
+      setIsLoadingRsvps(true);
+      try {
+        const data = await rsvpService.fetchRsvps();
+        setRsvps(data);
+      } catch (error) {
+        console.error('Error fetching RSVPs:', error);
+        setRsvps(rsvpService.getLocalRsvps());
+      } finally {
+        setIsLoadingRsvps(false);
+      }
+    };
+
+    fetchRsvps();
+  }, []);
 
   // 3. Guest Name detection from URL query parameters
   const [guestName, setGuestName] = useState<string>('Tamu Undangan Terhormat');
@@ -136,7 +148,7 @@ export default function App() {
     setIsCalendarOpen(true);
   };
 
-  // 8. RSVP handler with Vercel serverless function
+  // 8. RSVP handler - now uses Supabase service
   const handleAddRsvp = async (record: Omit<RSVPRecord, 'id' | 'createdAt'>) => {
     const newRecord: RSVPRecord = {
       ...record,
@@ -144,24 +156,17 @@ export default function App() {
       createdAt: new Date().toISOString(),
     };
 
-    const updated = [newRecord, ...rsvps];
-    setRsvps(updated);
     try {
-      localStorage.setItem('niskala_wedding_rsvps', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-
-    // Sync to Vercel serverless function
-    try {
-      const endpoint = API_BASE_URL ? `${API_BASE_URL}/api/rsvp` : '/api/rsvp';
-      await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRecord),
-      });
+      const result = await rsvpService.addRsvp(newRecord);
+      if (result.success) {
+        // Update state immediately
+        const updated = [newRecord, ...rsvps];
+        setRsvps(updated);
+      } else {
+        console.error('Failed to add RSVP:', result.error);
+      }
     } catch (error) {
-      console.warn('RSVP sync to server failed, using local storage only:', error);
+      console.error('Error adding RSVP:', error);
     }
   };
 
