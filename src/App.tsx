@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WeddingConfig, RSVPRecord, WeddingEvent } from './types/wedding';
+import { WeddingConfig, WeddingEvent, RSVPRecord } from './types/wedding';
 import { DEFAULT_WEDDING_CONFIG, INITIAL_RSVPS } from './data/defaultWeddingData';
 import { weddingMusicEngine } from './services/audioPlayer';
 import { OpeningEnvelopeModal } from './components/OpeningEnvelopeModal';
@@ -17,9 +17,28 @@ import { CalendarExportModal } from './components/CalendarExportModal';
 import { CustomizerModal } from './components/CustomizerModal';
 import { FloatingNav } from './components/FloatingNav';
 import { FooterSection } from './components/FooterSection';
+import { AdminPage } from './admin/AdminPage';
+import { ClientLandingPage } from './admin/ClientLandingPage';
+
+type RouteView = 'invitation' | 'admin' | 'kelola' | 'client';
+
+function detectRoute(): RouteView {
+  const path = window.location.pathname.toLowerCase();
+  if (path === '/admin' || path.startsWith('/admin/')) return 'admin';
+  if (path === '/kelola' || path.startsWith('/kelola/')) return 'kelola';
+  if (path === '/klien' || path.startsWith('/klien/')) return 'client';
+  return 'invitation';
+}
+
+function detectGuestSlug(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('tamu') || params.get('to') || params.get('guest') || params.get('nama');
+}
 
 export default function App() {
-  // 1. Config state with localStorage persistence
+  const [route] = useState<RouteView>(() => detectRoute());
+
+  // 1. Config state with localStorage persistence + server sync
   const [config, setConfig] = useState<WeddingConfig>(() => {
     try {
       const saved = localStorage.getItem('niskala_wedding_config');
@@ -29,8 +48,34 @@ export default function App() {
     }
     return DEFAULT_WEDDING_CONFIG;
   });
+  const [configLoaded, setConfigLoaded] = useState(false);
 
-  // 2. RSVP records state with localStorage persistence
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/wedding-config')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.config) {
+          setConfig(data.config);
+          try {
+            localStorage.setItem('niskala_wedding_config', JSON.stringify(data.config));
+          } catch {
+            // ignore
+          }
+        }
+      })
+      .catch(() => {
+        // offline/local-first resilience
+      })
+      .finally(() => {
+        if (!cancelled) setConfigLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 2. RSVP records state with localStorage persistence + server sync
   const [rsvps, setRsvps] = useState<RSVPRecord[]>(() => {
     try {
       const saved = localStorage.getItem('niskala_wedding_rsvps');
@@ -41,18 +86,37 @@ export default function App() {
     return INITIAL_RSVPS;
   });
 
+  useEffect(() => {
+    fetch('/api/rsvp')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (Array.isArray(data?.rsvps) && data.rsvps.length > 0) {
+          setRsvps(data.rsvps);
+        }
+      })
+      .catch(() => {
+        // offline/local-first resilience
+      });
+  }, []);
+
   // 3. Guest Name detection from URL query parameters (e.g. ?to=Budi+Santoso or ?tamu=dr.+Anisa)
   const [guestName, setGuestName] = useState<string>('Tamu Undangan Terhormat');
+  const [guestSlug, setGuestSlug] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const nameParam = params.get('to') || params.get('tamu') || params.get('guest') || params.get('nama');
-      if (nameParam) {
-        setGuestName(nameParam.trim());
-      }
-    }
-  }, []);
+    if (route !== 'invitation') return;
+    const slugParam = detectGuestSlug();
+    if (!slugParam) return;
+    setGuestSlug(slugParam);
+    fetch(`/api/guests?slug=${encodeURIComponent(slugParam)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.guest?.name) setGuestName(data.guest.name);
+      })
+      .catch(() => {
+        setGuestName(decodeURIComponent(slugParam).replace(/[-+]/g, ' '));
+      });
+  }, [route]);
 
   // 4. Dark mode state
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -87,6 +151,15 @@ export default function App() {
     setIsEnvelopeOpen(false);
     weddingMusicEngine.start();
     setIsMusicPlaying(true);
+    if (guestSlug) {
+      fetch('/api/guest-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guestSlug }),
+      }).catch(() => {
+        // ignore
+      });
+    }
   };
 
   // 7. Modals state
@@ -117,18 +190,13 @@ export default function App() {
       // ignore
     }
 
-    // Optional background sync to simple backend endpoint
-    try {
-      fetch('/api/rsvp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRecord),
-      }).catch(() => {
-        // Safe offline/local-first resilience
-      });
-    } catch {
-      // ignore
-    }
+    fetch('/api/rsvp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...newRecord, guestSlug }),
+    }).catch(() => {
+      // Safe offline/local-first resilience
+    });
   };
 
   // 9. Save and Reset Config
@@ -150,9 +218,21 @@ export default function App() {
     }
   };
 
+  // Admin dashboard route
+  if (route === 'admin') {
+    return <AdminPage />;
+  }
+
+  // Client onboarding route
+  if (route === 'client') {
+    return <ClientLandingPage />;
+  }
+
+  const invitationReady = configLoaded;
+
   return (
     <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA] transition-colors duration-300 relative selection:bg-[#B89047]/30">
-      
+
       {/* 1. Opening Cover Envelope Modal */}
       <OpeningEnvelopeModal
         config={config}
@@ -168,13 +248,12 @@ export default function App() {
         onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
         isMusicPlaying={isMusicPlaying}
         onToggleMusic={handleToggleMusic}
-        onOpenCustomizer={() => setIsCustomizerOpen(true)}
         onOpenQrPass={() => setIsQrPassOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
       />
 
       {/* Main Content Landmark */}
-      <main>
+      <main className={!invitationReady ? 'opacity-0 pointer-events-none' : ''}>
         {/* 3. Hero Section with Live Countdown */}
         <HeroSection
           config={config}
@@ -211,10 +290,7 @@ export default function App() {
       </main>
 
       {/* 10. Footer Section */}
-      <FooterSection
-        config={config}
-        onOpenCustomizer={() => setIsCustomizerOpen(true)}
-      />
+      <FooterSection config={config} />
 
       {/* 11. Floating Bottom Dock Navigation (Mobile) & Floating Music Vinyl */}
       <FloatingNav

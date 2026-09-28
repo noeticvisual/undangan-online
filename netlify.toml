@@ -5,6 +5,15 @@
 [build.environment]
   NODE_VERSION = "22"
 
+[dev]
+  framework = "#custom"
+  command = "npm run dev"
+  targetPort = 3000
+  autoLaunch = false
+
+[functions]
+  directory = "netlify/functions"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

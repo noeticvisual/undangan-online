@@ -3,9 +3,6 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig, Plugin} from 'vite';
 
-// In-memory backend storage for RSVPs
-const inMemoryRsvps: any[] = [];
-
 function weddingBackendApiPlugin(): Plugin {
   return {
     name: 'wedding-backend-api',
@@ -16,32 +13,6 @@ function weddingBackendApiPlugin(): Plugin {
           res.end(JSON.stringify({ status: 'ok', time: new Date().toISOString() }));
           return;
         }
-
-        if (req.url === '/api/rsvp' && req.method === 'GET') {
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ rsvps: inMemoryRsvps }));
-          return;
-        }
-
-        if (req.url === '/api/rsvp' && req.method === 'POST') {
-          let body = '';
-          req.on('data', (chunk) => {
-            body += chunk;
-          });
-          req.on('end', () => {
-            try {
-              const data = JSON.parse(body);
-              inMemoryRsvps.unshift(data);
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ success: true, count: inMemoryRsvps.length }));
-            } catch {
-              res.statusCode = 400;
-              res.end(JSON.stringify({ error: 'Invalid JSON body' }));
-            }
-          });
-          return;
-        }
-
         next();
       });
     },

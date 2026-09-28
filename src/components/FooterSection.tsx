@@ -1,13 +1,12 @@
 import React from 'react';
-import { Heart, ArrowUp, MessageCircle, Phone } from 'lucide-react';
+import { Heart, ArrowUp, MessageCircle } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
 
 interface FooterSectionProps {
   config: WeddingConfig;
-  onOpenCustomizer: () => void;
 }
 
-export const FooterSection: React.FC<FooterSectionProps> = ({ config, onOpenCustomizer }) => {
+export const FooterSection: React.FC<FooterSectionProps> = ({ config }) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -77,7 +76,7 @@ export const FooterSection: React.FC<FooterSectionProps> = ({ config, onOpenCust
           </div>
         </div>
 
-        {/* Scroll To Top & Customizer Link */}
+        {/* Scroll To Top */}
         <div className="flex items-center justify-center gap-4 text-xs text-[#8C7A6B] dark:text-[#A89E94] mb-8">
           <button
             onClick={scrollToTop}
@@ -85,13 +84,6 @@ export const FooterSection: React.FC<FooterSectionProps> = ({ config, onOpenCust
           >
             <ArrowUp className="w-3.5 h-3.5" />
             <span>Kembali ke Atas</span>
-          </button>
-          <span>·</span>
-          <button
-            onClick={onOpenCustomizer}
-            className="hover:text-[#B89047] transition-colors cursor-pointer"
-          >
-            Pengaturan &amp; Hosting
           </button>
         </div>
 

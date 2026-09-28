@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Volume2, VolumeX, Sliders, QrCode, Share2 } from 'lucide-react';
+import { Sun, Moon, Volume2, VolumeX, QrCode, Share2 } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
 
 interface HeaderNavbarProps {
@@ -8,7 +8,6 @@ interface HeaderNavbarProps {
   onToggleDarkMode: () => void;
   isMusicPlaying: boolean;
   onToggleMusic: () => void;
-  onOpenCustomizer: () => void;
   onOpenQrPass: () => void;
   onOpenShare: () => void;
 }
@@ -19,7 +18,6 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   onToggleDarkMode,
   isMusicPlaying,
   onToggleMusic,
-  onOpenCustomizer,
   onOpenQrPass,
   onOpenShare,
 }) => {
@@ -103,15 +101,6 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             className="p-1.5 text-[#2C2724] dark:text-[#F3EEEA] rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#F4EFEA] dark:bg-[#1C2521] hover:border-[#B89047] transition-colors cursor-pointer"
           >
             {isDarkMode ? <Sun className="w-4 h-4 text-[#F5DE93]" /> : <Moon className="w-4 h-4 text-[#8C7A6B]" />}
-          </button>
-
-          {/* Customizer trigger */}
-          <button
-            onClick={onOpenCustomizer}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#B89047] to-[#A37E38] rounded-full hover:shadow-md transition-all cursor-pointer whitespace-nowrap"
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Kustomisasi</span>
           </button>
         </div>
 

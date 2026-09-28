@@ -72,6 +72,12 @@ export interface RSVPRecord {
 
 export type ColorThemeKey = 'gold' | 'emerald' | 'rose' | 'slate';
 
+export interface OrganizerContact {
+  role: string;
+  name: string;
+  phone: string;
+}
+
 export interface WeddingConfig {
   groom: PersonInfo;
   bride: PersonInfo;
@@ -89,9 +95,5 @@ export interface WeddingConfig {
   musicTitle: string;
   musicArtist: string;
   colorTheme: ColorThemeKey;
-  organizerContacts: {
-    role: string;
-    name: string;
-    phone: string;
-  }[];
+  organizerContacts: OrganizerContact[];
 }
