@@ -17,8 +17,43 @@ import { CalendarExportModal } from './components/CalendarExportModal';
 import { CustomizerModal } from './components/CustomizerModal';
 import { FloatingNav } from './components/FloatingNav';
 import { FooterSection } from './components/FooterSection';
+import { AdminDashboard } from './components/AdminDashboard';
+import { ClientDashboard } from './components/ClientDashboard';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function App() {
+  // Router state for admin/client pages
+  const [currentPage, setCurrentPage] = useState<'home' | 'admin' | 'client'>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.includes('/admin')) return 'admin';
+      if (path.includes('/client')) return 'client';
+    }
+    return 'home';
+  });
+
+  // Update URL when page changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const path = currentPage === 'home' ? '/' : `/${currentPage}`;
+      window.history.pushState({}, '', path);
+    }
+  }, [currentPage]);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path.includes('/admin')) setCurrentPage('admin');
+      else if (path.includes('/client')) setCurrentPage('client');
+      else setCurrentPage('home');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // 1. Config state with localStorage persistence
   const [config, setConfig] = useState<WeddingConfig>(() => {
     try {
@@ -41,7 +76,7 @@ export default function App() {
     return INITIAL_RSVPS;
   });
 
-  // 3. Guest Name detection from URL query parameters (e.g. ?to=Budi+Santoso or ?tamu=dr.+Anisa)
+  // 3. Guest Name detection from URL query parameters
   const [guestName, setGuestName] = useState<string>('Tamu Undangan Terhormat');
 
   useEffect(() => {
@@ -72,7 +107,7 @@ export default function App() {
     }
   }, [isDarkMode]);
 
-  // 5. Envelope modal (Opening invitation screen)
+  // 5. Envelope modal
   const [isEnvelopeOpen, setIsEnvelopeOpen] = useState(true);
 
   // 6. Music playing state
@@ -101,8 +136,8 @@ export default function App() {
     setIsCalendarOpen(true);
   };
 
-  // 8. RSVP handler
-  const handleAddRsvp = (record: Omit<RSVPRecord, 'id' | 'createdAt'>) => {
+  // 8. RSVP handler with Vercel serverless function
+  const handleAddRsvp = async (record: Omit<RSVPRecord, 'id' | 'createdAt'>) => {
     const newRecord: RSVPRecord = {
       ...record,
       id: `rsvp-${Date.now()}`,
@@ -117,17 +152,16 @@ export default function App() {
       // ignore
     }
 
-    // Optional background sync to simple backend endpoint
+    // Sync to Vercel serverless function
     try {
-      fetch('/api/rsvp', {
+      const endpoint = API_BASE_URL ? `${API_BASE_URL}/api/rsvp` : '/api/rsvp';
+      await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRecord),
-      }).catch(() => {
-        // Safe offline/local-first resilience
       });
-    } catch {
-      // ignore
+    } catch (error) {
+      console.warn('RSVP sync to server failed, using local storage only:', error);
     }
   };
 
@@ -150,9 +184,48 @@ export default function App() {
     }
   };
 
+  // Render Admin Dashboard
+  if (currentPage === 'admin') {
+    return (
+      <AdminDashboard
+        rsvps={rsvps}
+        config={config}
+        onNavigateHome={() => setCurrentPage('home')}
+      />
+    );
+  }
+
+  // Render Client Dashboard
+  if (currentPage === 'client') {
+    return (
+      <ClientDashboard
+        rsvps={rsvps}
+        config={config}
+        onNavigateHome={() => setCurrentPage('home')}
+      />
+    );
+  }
+
+  // Render Home (Wedding Invitation)
   return (
     <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA] transition-colors duration-300 relative selection:bg-[#B89047]/30">
       
+      {/* Navigation links to admin/client */}
+      <div className="fixed top-0 right-0 z-50 flex gap-2 p-4 bg-white/80 dark:bg-black/80 backdrop-blur rounded-bl-lg">
+        <button
+          onClick={() => setCurrentPage('admin')}
+          className="px-3 py-1 text-sm font-medium text-[#B89047] hover:bg-[#B89047]/10 rounded transition"
+        >
+          Admin
+        </button>
+        <button
+          onClick={() => setCurrentPage('client')}
+          className="px-3 py-1 text-sm font-medium text-[#B89047] hover:bg-[#B89047]/10 rounded transition"
+        >
+          Client
+        </button>
+      </div>
+
       {/* 1. Opening Cover Envelope Modal */}
       <OpeningEnvelopeModal
         config={config}
@@ -161,7 +234,7 @@ export default function App() {
         onOpenInvitation={handleOpenInvitation}
       />
 
-      {/* 2. Top Bar Navigation (Strict 3-Zone Contract) */}
+      {/* 2. Top Bar Navigation */}
       <HeaderNavbar
         config={config}
         isDarkMode={isDarkMode}
@@ -175,7 +248,7 @@ export default function App() {
 
       {/* Main Content Landmark */}
       <main>
-        {/* 3. Hero Section with Live Countdown */}
+        {/* 3. Hero Section */}
         <HeroSection
           config={config}
           onOpenCalendarExport={() => {
@@ -187,7 +260,7 @@ export default function App() {
         {/* 4. Couple Section */}
         <CoupleSection config={config} />
 
-        {/* 5. Events Section (Akad & Resepsi) + Live Maps */}
+        {/* 5. Events Section */}
         <EventsSection
           config={config}
           onAddToCalendar={handleOpenCalendarForEvent}
@@ -196,17 +269,17 @@ export default function App() {
         {/* 6. Love Story Journey */}
         <LoveStorySection config={config} />
 
-        {/* 7. Photo Gallery with Fullscreen Lightbox */}
+        {/* 7. Photo Gallery */}
         <GallerySection gallery={config.gallery} />
 
-        {/* 8. Functional RSVP Form & Wishing Board */}
+        {/* 8. Functional RSVP Form */}
         <RsvpSection
           initialGuestName={guestName === 'Tamu Undangan Terhormat' ? '' : guestName}
           rsvps={rsvps}
           onAddRsvp={handleAddRsvp}
         />
 
-        {/* 9. Gift Registry & Digital Envelope */}
+        {/* 9. Gift Registry */}
         <GiftRegistrySection config={config} />
       </main>
 
@@ -216,7 +289,7 @@ export default function App() {
         onOpenCustomizer={() => setIsCustomizerOpen(true)}
       />
 
-      {/* 11. Floating Bottom Dock Navigation (Mobile) & Floating Music Vinyl */}
+      {/* 11. Floating Bottom Dock Navigation */}
       <FloatingNav
         isMusicPlaying={isMusicPlaying}
         onToggleMusic={handleToggleMusic}
@@ -237,7 +310,7 @@ export default function App() {
         onClose={() => setIsShareOpen(false)}
       />
 
-      {/* 14. Calendar Export Modal (Google Calendar & iCal) */}
+      {/* 14. Calendar Export Modal */}
       <CalendarExportModal
         config={config}
         selectedEvent={calendarTargetEvent}
