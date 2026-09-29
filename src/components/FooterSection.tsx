@@ -5,9 +5,10 @@ import { WeddingConfig } from '../types/wedding';
 interface FooterSectionProps {
   config: WeddingConfig;
   onOpenCustomizer: () => void;
+  onOpenPortalLogin: () => void;
 }
 
-export const FooterSection: React.FC<FooterSectionProps> = ({ config, onOpenCustomizer }) => {
+export const FooterSection: React.FC<FooterSectionProps> = ({ config, onOpenCustomizer, onOpenPortalLogin }) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -77,8 +78,8 @@ export const FooterSection: React.FC<FooterSectionProps> = ({ config, onOpenCust
           </div>
         </div>
 
-        {/* Scroll To Top & Customizer Link */}
-        <div className="flex items-center justify-center gap-4 text-xs text-[#8C7A6B] dark:text-[#A89E94] mb-8">
+        {/* Scroll To Top & Portal Links */}
+        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-[#8C7A6B] dark:text-[#A89E94] mb-8">
           <button
             onClick={scrollToTop}
             className="inline-flex items-center gap-1.5 hover:text-[#B89047] transition-colors cursor-pointer"
@@ -88,10 +89,17 @@ export const FooterSection: React.FC<FooterSectionProps> = ({ config, onOpenCust
           </button>
           <span>·</span>
           <button
+            onClick={onOpenPortalLogin}
+            className="hover:text-[#B89047] transition-colors cursor-pointer font-medium"
+          >
+            Akses Klien &amp; Admin
+          </button>
+          <span>·</span>
+          <button
             onClick={onOpenCustomizer}
             className="hover:text-[#B89047] transition-colors cursor-pointer"
           >
-            Pengaturan &amp; Hosting
+            Hosting &amp; Domain
           </button>
         </div>
 

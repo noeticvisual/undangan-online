@@ -205,3 +205,47 @@ export const INITIAL_RSVPS: RSVPRecord[] = [
     createdAt: '2026-09-24T18:05:00Z',
   },
 ];
+
+export const INITIAL_GUESTS = [
+  {
+    id: 'guest-1',
+    name: 'dr. Anisa & Keluarga',
+    phone: '081234567890',
+    category: 'Sahabat',
+    notes: 'Meja VIP A',
+    createdAt: '2026-09-20T10:00:00Z',
+  },
+  {
+    id: 'guest-2',
+    name: 'Ferry Pratama (Alumni ITB)',
+    phone: '081398765432',
+    category: 'Sahabat',
+    notes: 'Teman Kuliah Arya',
+    createdAt: '2026-09-20T11:00:00Z',
+  },
+  {
+    id: 'guest-3',
+    name: 'Rina Kusuma & Rekan Desain',
+    phone: '085712345678',
+    category: 'Rekan Kerja',
+    notes: 'Rekan Kantor Maya',
+    createdAt: '2026-09-20T12:00:00Z',
+  },
+  {
+    id: 'guest-4',
+    name: 'Bpk. Irfan Prasetyo & Istri',
+    phone: '081122334455',
+    category: 'Keluarga',
+    notes: 'Keluarga Pria',
+    createdAt: '2026-09-20T13:00:00Z',
+  },
+  {
+    id: 'guest-5',
+    name: 'Bambang Soediro (Kerabat Surabaya)',
+    phone: '081987654321',
+    category: 'Keluarga',
+    notes: 'Kerabat Surabaya',
+    createdAt: '2026-09-20T14:00:00Z',
+  },
+];
+

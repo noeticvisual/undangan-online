@@ -68,11 +68,38 @@ export interface RSVPRecord {
   guestCount: number;
   message: string;
   createdAt: string; // ISO string
+
+  // Compatibility fields
+  name?: string;
+  email?: string;
+  phone?: string;
+  status?: 'confirmed' | 'declined' | 'pending' | 'hadir' | 'tidak_hadir' | 'ragu';
+  numberOfGuests?: number;
+  specialRequest?: string;
+  isWish?: boolean;
 }
+
+export interface GuestItem {
+  id: string;
+  name: string;
+  phone?: string;
+  category?: 'Keluarga' | 'Sahabat' | 'VIP' | 'Rekan Kerja' | 'Tetangga' | string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface SupabaseConfig {
+  url: string;
+  anonKey: string;
+  isConnected: boolean;
+}
+
+export type AppViewMode = 'guest' | 'client' | 'admin';
 
 export type ColorThemeKey = 'gold' | 'emerald' | 'rose' | 'slate';
 
 export interface WeddingConfig {
+  coupleNames?: string;
   groom: PersonInfo;
   bride: PersonInfo;
   eventDateISO: string; // "2026-10-24T08:00:00+07:00"

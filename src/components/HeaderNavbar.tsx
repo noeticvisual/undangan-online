@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Volume2, VolumeX, Sliders, QrCode, Share2 } from 'lucide-react';
+import { Sun, Moon, Volume2, VolumeX, QrCode, Share2, KeyRound } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
 
 interface HeaderNavbarProps {
@@ -11,6 +11,7 @@ interface HeaderNavbarProps {
   onOpenCustomizer: () => void;
   onOpenQrPass: () => void;
   onOpenShare: () => void;
+  onOpenPortalLogin: () => void;
 }
 
 export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
@@ -19,9 +20,9 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   onToggleDarkMode,
   isMusicPlaying,
   onToggleMusic,
-  onOpenCustomizer,
   onOpenQrPass,
   onOpenShare,
+  onOpenPortalLogin,
 }) => {
   return (
     <header className="sticky top-0 z-40 w-full bg-[#FAF7F2]/90 dark:bg-[#121615]/90 backdrop-blur-md border-b border-[#EADFCF] dark:border-[#242D28] transition-colors duration-200">
@@ -105,13 +106,14 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             {isDarkMode ? <Sun className="w-4 h-4 text-[#F5DE93]" /> : <Moon className="w-4 h-4 text-[#8C7A6B]" />}
           </button>
 
-          {/* Customizer trigger */}
+          {/* Portal Akses Klien & Admin */}
           <button
-            onClick={onOpenCustomizer}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#B89047] to-[#A37E38] rounded-full hover:shadow-md transition-all cursor-pointer whitespace-nowrap"
+            onClick={onOpenPortalLogin}
+            title="Portal Klien & Admin"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#B89047] to-[#A37E38] rounded-full hover:shadow-md transition-all cursor-pointer whitespace-nowrap"
           >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Kustomisasi</span>
+            <KeyRound className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Akses Khusus</span>
           </button>
         </div>
 
@@ -119,3 +121,4 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
     </header>
   );
 };
+

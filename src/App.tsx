@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { WeddingConfig, RSVPRecord, WeddingEvent } from './types/wedding';
-import { DEFAULT_WEDDING_CONFIG, INITIAL_RSVPS } from './data/defaultWeddingData';
+import { WeddingConfig, RSVPRecord, WeddingEvent, GuestItem, AppViewMode } from './types/wedding';
+import { DEFAULT_WEDDING_CONFIG, INITIAL_RSVPS, INITIAL_GUESTS } from './data/defaultWeddingData';
 import { weddingMusicEngine } from './services/audioPlayer';
-import { rsvpService } from './services/rsvpService';
+import { supabaseWeddingService } from './services/supabase';
 import { OpeningEnvelopeModal } from './components/OpeningEnvelopeModal';
 import { HeaderNavbar } from './components/HeaderNavbar';
 import { HeroSection } from './components/HeroSection';
@@ -18,44 +18,62 @@ import { CalendarExportModal } from './components/CalendarExportModal';
 import { CustomizerModal } from './components/CustomizerModal';
 import { FloatingNav } from './components/FloatingNav';
 import { FooterSection } from './components/FooterSection';
+import { ClientGuestPortal } from './components/ClientGuestPortal';
 import { AdminDashboard } from './components/AdminDashboard';
-import { ClientDashboard } from './components/ClientDashboard';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+import { AccessLoginModal } from './components/AccessLoginModal';
 
 export default function App() {
-  // Router state for admin/client pages
-  const [currentPage, setCurrentPage] = useState<'home' | 'admin' | 'client'>(() => {
+  // 1. View mode routing: 'guest' | 'client' | 'admin'
+  const [viewMode, setViewMode] = useState<AppViewMode>(() => {
     if (typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      if (path.includes('/admin')) return 'admin';
-      if (path.includes('/client')) return 'client';
+      const params = new URLSearchParams(window.location.search);
+      const portalParam = params.get('portal') || params.get('mode') || params.get('page');
+      if (portalParam === 'admin' || window.location.hash === '#admin') return 'admin';
+      if (portalParam === 'client' || window.location.hash === '#client') return 'client';
     }
-    return 'home';
+    return 'guest';
   });
 
-  // Update URL when page changes
+  // Listen for URL or Hash changes dynamically
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const path = currentPage === 'home' ? '/' : `/${currentPage}`;
-      window.history.pushState({}, '', path);
-    }
-  }, [currentPage]);
-
-  // Handle browser back/forward
-  useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname;
-      if (path.includes('/admin')) setCurrentPage('admin');
-      else if (path.includes('/client')) setCurrentPage('client');
-      else setCurrentPage('home');
+    const handleUrlChange = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const portalParam = params.get('portal') || params.get('mode') || params.get('page');
+        if (portalParam === 'admin' || window.location.hash === '#admin') {
+          setViewMode('admin');
+        } else if (portalParam === 'client' || window.location.hash === '#client') {
+          setViewMode('client');
+        } else if (portalParam === 'guest' || (!portalParam && !window.location.hash)) {
+          setViewMode('guest');
+        }
+      }
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
   }, []);
 
-  // 1. Config state with localStorage persistence
+  const changeViewMode = (mode: AppViewMode) => {
+    setViewMode(mode);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (mode === 'guest') {
+        url.searchParams.delete('portal');
+        url.searchParams.delete('mode');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      } else {
+        url.searchParams.set('portal', mode);
+        window.history.replaceState({}, '', url.toString());
+      }
+    }
+  };
+
+  // 2. Config state with localStorage & Supabase persistence
   const [config, setConfig] = useState<WeddingConfig>(() => {
     try {
       const saved = localStorage.getItem('niskala_wedding_config');
@@ -66,29 +84,29 @@ export default function App() {
     return DEFAULT_WEDDING_CONFIG;
   });
 
-  // 2. RSVP records state - now from Supabase
-  const [rsvps, setRsvps] = useState<RSVPRecord[]>(INITIAL_RSVPS);
-  const [isLoadingRsvps, setIsLoadingRsvps] = useState(true);
+  // 3. RSVP records state with localStorage & Supabase persistence
+  const [rsvps, setRsvps] = useState<RSVPRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem('niskala_wedding_rsvps');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // Fallback
+    }
+    return INITIAL_RSVPS;
+  });
 
-  // Fetch RSVPs from Supabase on mount
-  useEffect(() => {
-    const fetchRsvps = async () => {
-      setIsLoadingRsvps(true);
-      try {
-        const data = await rsvpService.fetchRsvps();
-        setRsvps(data);
-      } catch (error) {
-        console.error('Error fetching RSVPs:', error);
-        setRsvps(rsvpService.getLocalRsvps());
-      } finally {
-        setIsLoadingRsvps(false);
-      }
-    };
+  // 4. Client's Guest List state with localStorage & Supabase persistence
+  const [guests, setGuests] = useState<GuestItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('niskala_client_guests');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // Fallback
+    }
+    return INITIAL_GUESTS;
+  });
 
-    fetchRsvps();
-  }, []);
-
-  // 3. Guest Name detection from URL query parameters
+  // 5. Detect guest name from URL query parameter (?to=Budi or ?tamu=dr.+Anisa)
   const [guestName, setGuestName] = useState<string>('Tamu Undangan Terhormat');
 
   useEffect(() => {
@@ -101,7 +119,36 @@ export default function App() {
     }
   }, []);
 
-  // 4. Dark mode state
+  // 6. Supabase Initial Cloud Sync on Mount
+  useEffect(() => {
+    const syncFromSupabase = async () => {
+      try {
+        const cloudConfig = await supabaseWeddingService.fetchWeddingConfig();
+        if (cloudConfig) {
+          setConfig(cloudConfig);
+          localStorage.setItem('niskala_wedding_config', JSON.stringify(cloudConfig));
+        }
+
+        const cloudGuests = await supabaseWeddingService.fetchGuests();
+        if (cloudGuests && cloudGuests.length > 0) {
+          setGuests(cloudGuests);
+          localStorage.setItem('niskala_client_guests', JSON.stringify(cloudGuests));
+        }
+
+        const cloudRsvps = await supabaseWeddingService.fetchRsvps();
+        if (cloudRsvps && cloudRsvps.length > 0) {
+          setRsvps(cloudRsvps);
+          localStorage.setItem('niskala_wedding_rsvps', JSON.stringify(cloudRsvps));
+        }
+      } catch {
+        // Fallback to local storage
+      }
+    };
+
+    syncFromSupabase();
+  }, []);
+
+  // 7. Dark mode state
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('niskala_theme') === 'dark';
@@ -119,10 +166,10 @@ export default function App() {
     }
   }, [isDarkMode]);
 
-  // 5. Envelope modal
-  const [isEnvelopeOpen, setIsEnvelopeOpen] = useState(true);
+  // 8. Envelope modal (Opening invitation screen)
+  const [isEnvelopeOpen, setIsEnvelopeOpen] = useState(() => viewMode === 'guest');
 
-  // 6. Music playing state
+  // 9. Music playing state
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
 
   const handleToggleMusic = () => {
@@ -136,41 +183,107 @@ export default function App() {
     setIsMusicPlaying(true);
   };
 
-  // 7. Modals state
+  // 10. Modals state
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isQrPassOpen, setIsQrPassOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [calendarTargetEvent, setCalendarTargetEvent] = useState<WeddingEvent | null>(null);
+  const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
 
   const handleOpenCalendarForEvent = (ev: WeddingEvent) => {
     setCalendarTargetEvent(ev);
     setIsCalendarOpen(true);
   };
 
-  // 8. RSVP handler - now uses Supabase service
-  const handleAddRsvp = async (record: Omit<RSVPRecord, 'id' | 'createdAt'>) => {
+  // 11. RSVP handler (Guest submission)
+  const handleAddRsvp = (record: Omit<RSVPRecord, 'id' | 'createdAt'>) => {
     const newRecord: RSVPRecord = {
       ...record,
       id: `rsvp-${Date.now()}`,
       createdAt: new Date().toISOString(),
     };
 
+    const updated = [newRecord, ...rsvps];
+    setRsvps(updated);
     try {
-      const result = await rsvpService.addRsvp(newRecord);
-      if (result.success) {
-        // Update state immediately
-        const updated = [newRecord, ...rsvps];
-        setRsvps(updated);
-      } else {
-        console.error('Failed to add RSVP:', result.error);
-      }
-    } catch (error) {
-      console.error('Error adding RSVP:', error);
+      localStorage.setItem('niskala_wedding_rsvps', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+
+    // Sync to Supabase in background
+    supabaseWeddingService.saveRsvp(newRecord).catch(() => {});
+
+    // Sync to backend endpoint
+    try {
+      fetch('/api/rsvp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRecord),
+      }).catch(() => {});
+    } catch {
+      // ignore
     }
   };
 
-  // 9. Save and Reset Config
+  const handleDeleteRsvp = (id: string) => {
+    const updated = rsvps.filter((r) => r.id !== id);
+    setRsvps(updated);
+    try {
+      localStorage.setItem('niskala_wedding_rsvps', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+    supabaseWeddingService.deleteRsvp(id).catch(() => {});
+  };
+
+  // 12. Client Guest Management handlers
+  const handleAddGuest = (guest: Omit<GuestItem, 'id' | 'createdAt'>) => {
+    const newGuest: GuestItem = {
+      ...guest,
+      id: `guest-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [newGuest, ...guests];
+    setGuests(updated);
+    try {
+      localStorage.setItem('niskala_client_guests', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+    supabaseWeddingService.saveGuest(newGuest).catch(() => {});
+  };
+
+  const handleBulkAddGuests = (names: string[], category: string) => {
+    const newGuests: GuestItem[] = names.map((name, index) => ({
+      id: `guest-${Date.now()}-${index}`,
+      name,
+      category,
+      createdAt: new Date().toISOString(),
+    }));
+    const updated = [...newGuests, ...guests];
+    setGuests(updated);
+    try {
+      localStorage.setItem('niskala_client_guests', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+    newGuests.forEach((g) => supabaseWeddingService.saveGuest(g).catch(() => {}));
+  };
+
+  const handleDeleteGuest = (id: string) => {
+    const updated = guests.filter((g) => g.id !== id);
+    setGuests(updated);
+    try {
+      localStorage.setItem('niskala_client_guests', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+    supabaseWeddingService.deleteGuest(id).catch(() => {});
+  };
+
+  // 13. Admin Config Save and Reset
   const handleSaveConfig = (newConfig: WeddingConfig) => {
     setConfig(newConfig);
     try {
@@ -178,6 +291,7 @@ export default function App() {
     } catch {
       // ignore
     }
+    supabaseWeddingService.saveWeddingConfig(newConfig).catch(() => {});
   };
 
   const handleResetDefault = () => {
@@ -187,50 +301,120 @@ export default function App() {
     } catch {
       // ignore
     }
+    supabaseWeddingService.saveWeddingConfig(DEFAULT_WEDDING_CONFIG).catch(() => {});
   };
 
-  // Render Admin Dashboard
-  if (currentPage === 'admin') {
+  // =========================================================================
+  // VIEW: CLIENT PORTAL (Pengantin mengelola daftar tamu & membagikan link)
+  // =========================================================================
+  if (viewMode === 'client') {
     return (
-      <AdminDashboard
-        rsvps={rsvps}
-        config={config}
-        onNavigateHome={() => setCurrentPage('home')}
-      />
+      <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA]">
+        {/* Floating Quick Role Switcher Bar */}
+        <div className="sticky top-2 z-50 max-w-fit mx-auto bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-1.5 text-xs mb-2">
+          <button
+            onClick={() => changeViewMode('guest')}
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
+          >
+            ← Undangan Tamu
+          </button>
+          <span className="text-[#D9CEBF]">|</span>
+          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#B89047] text-white shadow-xs">
+            Portal Klien
+          </span>
+          <span className="text-[#D9CEBF]">|</span>
+          <button
+            onClick={() => changeViewMode('admin')}
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
+          >
+            Master Admin →
+          </button>
+        </div>
+
+        <ClientGuestPortal
+          config={config}
+          guests={guests}
+          rsvps={rsvps}
+          onAddGuest={handleAddGuest}
+          onBulkAddGuests={handleBulkAddGuests}
+          onDeleteGuest={handleDeleteGuest}
+          onBackToInvitation={() => changeViewMode('guest')}
+        />
+      </div>
     );
   }
 
-  // Render Client Dashboard
-  if (currentPage === 'client') {
+  // =========================================================================
+  // VIEW: ADMIN DASHBOARD (Master admin mengubah seluruh isi web undangan)
+  // =========================================================================
+  if (viewMode === 'admin') {
     return (
-      <ClientDashboard
-        rsvps={rsvps}
-        config={config}
-        onNavigateHome={() => setCurrentPage('home')}
-      />
+      <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA]">
+        {/* Floating Quick Role Switcher Bar */}
+        <div className="sticky top-2 z-50 max-w-fit mx-auto bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-1.5 text-xs mb-2">
+          <button
+            onClick={() => changeViewMode('guest')}
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
+          >
+            ← Undangan Tamu
+          </button>
+          <span className="text-[#D9CEBF]">|</span>
+          <button
+            onClick={() => changeViewMode('client')}
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
+          >
+            Portal Klien
+          </button>
+          <span className="text-[#D9CEBF]">|</span>
+          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#B89047] text-white shadow-xs">
+            Master Admin
+          </span>
+        </div>
+
+        <AdminDashboard
+          config={config}
+          rsvps={rsvps}
+          onSaveConfig={handleSaveConfig}
+          onResetDefault={handleResetDefault}
+          onDeleteRsvp={handleDeleteRsvp}
+          onBackToInvitation={() => changeViewMode('guest')}
+        />
+      </div>
     );
   }
 
-  // Render Home (Wedding Invitation)
+  // =========================================================================
+  // VIEW: GUEST INVITATION (Tamu hanya bisa melihat undangan & mengisi RSVP)
+  // =========================================================================
   return (
     <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA] transition-colors duration-300 relative selection:bg-[#B89047]/30">
       
-      {/* Navigation links to admin/client */}
-      <div className="fixed top-0 right-0 z-50 flex gap-2 p-4 bg-white/80 dark:bg-black/80 backdrop-blur rounded-bl-lg">
+      {/* Floating Quick Role Switcher Bar (Direct 1-Click Access) */}
+      <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-2 text-xs">
         <button
-          onClick={() => setCurrentPage('admin')}
-          className="px-3 py-1 text-sm font-medium text-[#B89047] hover:bg-[#B89047]/10 rounded transition"
+          onClick={() => changeViewMode('guest')}
+          className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
+            viewMode === 'guest'
+              ? 'bg-[#B89047] text-white shadow-xs font-semibold'
+              : 'text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047]'
+          }`}
         >
-          Admin
+          👁️ Tamu
         </button>
         <button
-          onClick={() => setCurrentPage('client')}
-          className="px-3 py-1 text-sm font-medium text-[#B89047] hover:bg-[#B89047]/10 rounded transition"
+          onClick={() => changeViewMode('client')}
+          className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
         >
-          Client
+          💍 Klien
+        </button>
+        <button
+          onClick={() => changeViewMode('admin')}
+          className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
+        >
+          ⚙️ Admin
         </button>
       </div>
-
+      
       {/* 1. Opening Cover Envelope Modal */}
       <OpeningEnvelopeModal
         config={config}
@@ -239,7 +423,7 @@ export default function App() {
         onOpenInvitation={handleOpenInvitation}
       />
 
-      {/* 2. Top Bar Navigation */}
+      {/* 2. Top Bar Navigation (Strict 3-Zone Contract) */}
       <HeaderNavbar
         config={config}
         isDarkMode={isDarkMode}
@@ -249,11 +433,12 @@ export default function App() {
         onOpenCustomizer={() => setIsCustomizerOpen(true)}
         onOpenQrPass={() => setIsQrPassOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
+        onOpenPortalLogin={() => setIsAccessModalOpen(true)}
       />
 
       {/* Main Content Landmark */}
       <main>
-        {/* 3. Hero Section */}
+        {/* 3. Hero Section with Live Countdown */}
         <HeroSection
           config={config}
           onOpenCalendarExport={() => {
@@ -265,7 +450,7 @@ export default function App() {
         {/* 4. Couple Section */}
         <CoupleSection config={config} />
 
-        {/* 5. Events Section */}
+        {/* 5. Events Section (Akad & Resepsi) + Live Maps */}
         <EventsSection
           config={config}
           onAddToCalendar={handleOpenCalendarForEvent}
@@ -274,17 +459,17 @@ export default function App() {
         {/* 6. Love Story Journey */}
         <LoveStorySection config={config} />
 
-        {/* 7. Photo Gallery */}
+        {/* 7. Photo Gallery with Fullscreen Lightbox */}
         <GallerySection gallery={config.gallery} />
 
-        {/* 8. Functional RSVP Form */}
+        {/* 8. Functional RSVP Form & Wishing Board (Tamu hanya bisa mengisi ini) */}
         <RsvpSection
           initialGuestName={guestName === 'Tamu Undangan Terhormat' ? '' : guestName}
           rsvps={rsvps}
           onAddRsvp={handleAddRsvp}
         />
 
-        {/* 9. Gift Registry */}
+        {/* 9. Gift Registry & Digital Envelope */}
         <GiftRegistrySection config={config} />
       </main>
 
@@ -292,9 +477,10 @@ export default function App() {
       <FooterSection
         config={config}
         onOpenCustomizer={() => setIsCustomizerOpen(true)}
+        onOpenPortalLogin={() => setIsAccessModalOpen(true)}
       />
 
-      {/* 11. Floating Bottom Dock Navigation */}
+      {/* 11. Floating Bottom Dock Navigation (Mobile) & Floating Music Vinyl */}
       <FloatingNav
         isMusicPlaying={isMusicPlaying}
         onToggleMusic={handleToggleMusic}
@@ -315,7 +501,7 @@ export default function App() {
         onClose={() => setIsShareOpen(false)}
       />
 
-      {/* 14. Calendar Export Modal */}
+      {/* 14. Calendar Export Modal (Google Calendar & iCal) */}
       <CalendarExportModal
         config={config}
         selectedEvent={calendarTargetEvent}
@@ -330,6 +516,13 @@ export default function App() {
         onClose={() => setIsCustomizerOpen(false)}
         onSaveConfig={handleSaveConfig}
         onResetDefault={handleResetDefault}
+      />
+
+      {/* 16. Portal Login Modal (Klien & Admin Access) */}
+      <AccessLoginModal
+        isOpen={isAccessModalOpen}
+        onClose={() => setIsAccessModalOpen(false)}
+        onSelectRole={(role) => setViewMode(role)}
       />
 
     </div>

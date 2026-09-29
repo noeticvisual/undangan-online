@@ -65,12 +65,16 @@ export const rsvpService = {
         if (data) {
           return data.map(item => ({
             id: item.id,
-            name: item.name,
+            guestName: item.name || item.guest_name || 'Tamu Undangan',
+            attendance: (item.status === 'confirmed' ? 'hadir' : item.status === 'declined' ? 'tidak_hadir' : item.attendance) || 'hadir',
+            guestCount: item.number_of_guests || item.guest_count || 1,
+            message: item.special_request || item.message || '',
+            name: item.name || item.guest_name,
             email: item.email,
             phone: item.phone,
             status: item.status,
-            numberOfGuests: item.number_of_guests,
-            specialRequest: item.special_request,
+            numberOfGuests: item.number_of_guests || item.guest_count || 1,
+            specialRequest: item.special_request || item.message,
             isWish: item.is_wish,
             createdAt: item.created_at,
           }));

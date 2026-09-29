@@ -27,10 +27,12 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ rsvps, config,
   // Calculate stats
   const stats = {
     total: rsvpList.length,
-    confirmed: rsvpList.filter(r => r.status === 'confirmed').length,
-    guests: rsvpList.reduce((sum, r) => sum + (r.numberOfGuests || 1), 0),
+    confirmed: rsvpList.filter(r => r.status === 'confirmed' || r.attendance === 'hadir').length,
+    guests: rsvpList.reduce((sum, r) => sum + (r.numberOfGuests || r.guestCount || 1), 0),
     wishes: wishes.length,
   };
+
+  const coupleDisplay = config.coupleNames || `${config.groom.nickName} & ${config.bride.nickName}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FAF7F2] to-[#E8E0D5] dark:from-[#121615] dark:to-[#1a1d1c]">
@@ -40,7 +42,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ rsvps, config,
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-[#2C2724] dark:text-white">Tamu kami</h1>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">{config.coupleNames}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{coupleDisplay}</p>
             </div>
             <button
               onClick={onNavigateHome}
@@ -136,74 +138,82 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ rsvps, config,
         {/* Guest List */}
         <div className="space-y-4">
           {displayList.length > 0 ? (
-            displayList.map((item, index) => (
-              <div
-                key={item.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition hover:scale-102 border-l-4 border-[#B89047]"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl font-bold text-[#B89047]">{index + 1}.</span>
-                      <div>
-                        <h3 className="text-lg font-bold text-[#2C2724] dark:text-white">{item.name}</h3>
-                        {item.email && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                            <span>✉</span>
-                            {item.email}
+            displayList.map((item, index) => {
+              const displayName = item.name || item.guestName;
+              const isConfirmed = item.status === 'confirmed' || item.attendance === 'hadir';
+              const isDeclined = item.status === 'declined' || item.attendance === 'tidak_hadir';
+              const guestNum = item.numberOfGuests || item.guestCount || 1;
+              const displayMsg = item.specialRequest || item.message;
+
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition hover:scale-102 border-l-4 border-[#B89047]"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-2xl font-bold text-[#B89047]">{index + 1}.</span>
+                        <div>
+                          <h3 className="text-lg font-bold text-[#2C2724] dark:text-white">{displayName}</h3>
+                          {item.email && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                              <span>✉</span>
+                              {item.email}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {item.isWish ? (
+                        <div className="mt-4 p-4 bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                            "{displayMsg}"
                           </p>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="mt-4 flex flex-wrap gap-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Status:</span>
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                              isConfirmed ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                              isDeclined ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            }`}>
+                              {isConfirmed ? '✓ Hadir' :
+                               isDeclined ? '✗ Tidak Hadir' :
+                               '? Tertunda'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Jumlah Tamu:</span>
+                            <span className="text-sm font-bold text-[#2C2724] dark:text-white">{guestNum}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {displayMsg && !item.isWish && (
+                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <p className="text-xs font-semibold text-blue-900 dark:text-blue-200 mb-1">Catatan / Doa:</p>
+                          <p className="text-sm text-blue-800 dark:text-blue-300">{displayMsg}</p>
+                        </div>
+                      )}
+
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-3">
+                        {new Date(item.createdAt).toLocaleDateString('id-ID', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
                     </div>
-
-                    {item.isWish ? (
-                      <div className="mt-4 p-4 bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg">
-                        <p className="text-sm text-gray-700 dark:text-gray-300 italic">
-                          "{item.specialRequest}"
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="mt-4 flex flex-wrap gap-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Status:</span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                            item.status === 'confirmed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                            item.status === 'declined' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                          }`}>
-                            {item.status === 'confirmed' ? '✓ Hadir' :
-                             item.status === 'declined' ? '✗ Tidak Hadir' :
-                             '? Tertunda'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Jumlah Tamu:</span>
-                          <span className="text-sm font-bold text-[#2C2724] dark:text-white">{item.numberOfGuests || 1}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {item.specialRequest && !item.isWish && (
-                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <p className="text-xs font-semibold text-blue-900 dark:text-blue-200 mb-1">Catatan:</p>
-                        <p className="text-sm text-blue-800 dark:text-blue-300">{item.specialRequest}</p>
-                      </div>
-                    )}
-
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-3">
-                      {new Date(item.createdAt).toLocaleDateString('id-ID', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="text-center py-12">
               <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
