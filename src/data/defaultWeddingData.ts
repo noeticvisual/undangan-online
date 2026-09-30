@@ -8,6 +8,7 @@ export const GALLERY_MOMENTS = '/src/assets/images/gallery_wedding_moments_17906
 export const VENUE_AMBIANCE = '/src/assets/images/wedding_venue_ambiance_1790611045766.jpg';
 
 export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
+  heroImageUrl: HERO_IMAGE,
   groom: {
     fullName: 'Raden Arya Pratama, S.T.',
     nickName: 'Arya',
@@ -151,6 +152,7 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
   ],
   musicTitle: 'Canon in D - Romantic Acoustic',
   musicArtist: 'Johann Pachelbel (Acoustic Strings)',
+  clientPasscode: 'mayaarya2026',
   colorTheme: 'gold',
   organizerContacts: [
     {

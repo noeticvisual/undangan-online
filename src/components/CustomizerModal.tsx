@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Sliders, RotateCcw, Save, Download, Server, Globe, Check } from 'lucide-react';
+import { X, Sliders, RotateCcw, Save, Download, Server, Globe, Check, Image, Sparkles } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
+import { formatImageUrl, isGoogleDriveUrl } from '../utils/googleDrive';
 
 interface CustomizerModalProps {
   config: WeddingConfig;
@@ -165,6 +166,102 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
                     className="w-full px-3 py-2 rounded-lg border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2]"
                   />
                 </div>
+              </div>
+
+              {/* Photo URLs with Google Drive Support */}
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-3">
+                <span className="font-semibold text-[#B89047] flex items-center gap-1.5 text-xs">
+                  <Image className="w-3.5 h-3.5" />
+                  Pengaturan Foto (Mendukung Tautan Google Drive)
+                </span>
+
+                {/* Hero Background */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-medium text-[#4A3F36] dark:text-[#D1C3B3]">
+                      Foto Latar Belakang Utama (Hero Background)
+                    </label>
+                    {isGoogleDriveUrl(formData.heroImageUrl || '') && (
+                      <span className="text-[10px] text-emerald-600 font-medium">✓ Google Drive</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-[#D9CEBF] bg-slate-100 shrink-0">
+                      <img
+                        src={formatImageUrl(formData.heroImageUrl || formData.gallery[0]?.url, '/src/assets/images/hero_wedding_couple_1790610979338.jpg')}
+                        alt="Hero preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.heroImageUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, heroImageUrl: e.target.value })}
+                      placeholder="Tempel link Google Drive atau URL foto..."
+                      className="w-full px-3 py-1.5 rounded-lg border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] font-mono text-[11px]"
+                    />
+                  </div>
+                </div>
+
+                {/* Groom Photo */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-medium text-[#4A3F36] dark:text-[#D1C3B3]">
+                      Foto Mempelai Pria ({formData.groom.nickName})
+                    </label>
+                    {isGoogleDriveUrl(formData.groom.photoUrl) && (
+                      <span className="text-[10px] text-emerald-600 font-medium">✓ Google Drive</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-[#D9CEBF] bg-slate-100 shrink-0">
+                      <img
+                        src={formatImageUrl(formData.groom.photoUrl, '/src/assets/images/groom_portrait_1790611004426.jpg')}
+                        alt="Groom preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.groom.photoUrl}
+                      onChange={(e) => setFormData({ ...formData, groom: { ...formData.groom, photoUrl: e.target.value } })}
+                      placeholder="Tempel link Google Drive..."
+                      className="w-full px-3 py-1.5 rounded-lg border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] font-mono text-[11px]"
+                    />
+                  </div>
+                </div>
+
+                {/* Bride Photo */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-medium text-[#4A3F36] dark:text-[#D1C3B3]">
+                      Foto Mempelai Wanita ({formData.bride.nickName})
+                    </label>
+                    {isGoogleDriveUrl(formData.bride.photoUrl) && (
+                      <span className="text-[10px] text-emerald-600 font-medium">✓ Google Drive</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-[#D9CEBF] bg-slate-100 shrink-0">
+                      <img
+                        src={formatImageUrl(formData.bride.photoUrl, '/src/assets/images/bride_portrait_1790611016646.jpg')}
+                        alt="Bride preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.bride.photoUrl}
+                      onChange={(e) => setFormData({ ...formData, bride: { ...formData.bride, photoUrl: e.target.value } })}
+                      placeholder="Tempel link Google Drive..."
+                      className="w-full px-3 py-1.5 rounded-lg border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] font-mono text-[11px]"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-[#8C7A6B] dark:text-[#A89E94]">
+                  💡 <strong>Tips:</strong> Pastikan izin file Google Drive Anda telah diatur ke <em>"Siapa saja yang memiliki link" (Pelihat)</em>.
+                </p>
               </div>
 
               <div>

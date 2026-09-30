@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Maximize2, Sparkles } from 'lucide-react';
 import { GalleryItem } from '../types/wedding';
+import { formatImageUrl } from '../utils/googleDrive';
 
 interface GallerySectionProps {
   gallery: GalleryItem[];
@@ -74,7 +75,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ gallery }) => {
                 }`}
               >
                 <img
-                  src={photo.url}
+                  src={formatImageUrl(photo.url)}
                   alt={photo.caption}
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -135,7 +136,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ gallery }) => {
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={gallery[activePhotoIndex].url}
+                src={formatImageUrl(gallery[activePhotoIndex].url)}
                 alt={gallery[activePhotoIndex].caption}
                 referrerPolicy="no-referrer"
                 className="max-h-[72vh] max-w-full object-contain rounded-lg shadow-2xl transition-all"

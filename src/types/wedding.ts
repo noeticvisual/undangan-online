@@ -98,8 +98,19 @@ export type AppViewMode = 'guest' | 'client' | 'admin';
 
 export type ColorThemeKey = 'gold' | 'emerald' | 'rose' | 'slate';
 
+export interface MusicTrack {
+  id: string;
+  title: string;
+  artist: string;
+  genre: 'canon' | 'gamelan' | 'piano' | 'strings' | 'acoustic' | 'custom';
+  description: string;
+  audioUrl?: string;
+  durationFormatted?: string;
+}
+
 export interface WeddingConfig {
   coupleNames?: string;
+  heroImageUrl?: string;
   groom: PersonInfo;
   bride: PersonInfo;
   eventDateISO: string; // "2026-10-24T08:00:00+07:00"
@@ -115,6 +126,9 @@ export interface WeddingConfig {
   gallery: GalleryItem[];
   musicTitle: string;
   musicArtist: string;
+  selectedTrackId?: string;
+  customAudioUrl?: string;
+  clientPasscode?: string;
   colorTheme: ColorThemeKey;
   organizerContacts: {
     role: string;

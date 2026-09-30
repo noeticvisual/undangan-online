@@ -21,15 +21,40 @@ import { FooterSection } from './components/FooterSection';
 import { ClientGuestPortal } from './components/ClientGuestPortal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AccessLoginModal } from './components/AccessLoginModal';
+import { MusicSwitcherModal } from './components/MusicSwitcherModal';
 
 export default function App() {
+  // Session & local authorization states for protected portals
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    try {
+      return (
+        localStorage.getItem('niskala_auth_admin') === 'true' ||
+        sessionStorage.getItem('niskala_auth_admin') === 'true'
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  const [isClientAuthenticated, setIsClientAuthenticated] = useState<boolean>(() => {
+    try {
+      return (
+        localStorage.getItem('niskala_auth_client') === 'true' ||
+        sessionStorage.getItem('niskala_auth_client') === 'true'
+      );
+    } catch {
+      return false;
+    }
+  });
+
   // 1. View mode routing: 'guest' | 'client' | 'admin'
   const [viewMode, setViewMode] = useState<AppViewMode>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const portalParam = params.get('portal') || params.get('mode') || params.get('page');
-      if (portalParam === 'admin' || window.location.hash === '#admin') return 'admin';
-      if (portalParam === 'client' || window.location.hash === '#client') return 'client';
+      const path = window.location.pathname.toLowerCase();
+      if (portalParam === 'admin' || window.location.hash === '#admin' || path.endsWith('/admin')) return 'admin';
+      if (portalParam === 'client' || window.location.hash === '#client' || path.endsWith('/client')) return 'client';
     }
     return 'guest';
   });
@@ -40,11 +65,12 @@ export default function App() {
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         const portalParam = params.get('portal') || params.get('mode') || params.get('page');
-        if (portalParam === 'admin' || window.location.hash === '#admin') {
+        const path = window.location.pathname.toLowerCase();
+        if (portalParam === 'admin' || window.location.hash === '#admin' || path.endsWith('/admin')) {
           setViewMode('admin');
-        } else if (portalParam === 'client' || window.location.hash === '#client') {
+        } else if (portalParam === 'client' || window.location.hash === '#client' || path.endsWith('/client')) {
           setViewMode('client');
-        } else if (portalParam === 'guest' || (!portalParam && !window.location.hash)) {
+        } else if (portalParam === 'guest' || (!portalParam && !window.location.hash && !path.endsWith('/admin') && !path.endsWith('/client'))) {
           setViewMode('guest');
         }
       }
@@ -169,8 +195,24 @@ export default function App() {
   // 8. Envelope modal (Opening invitation screen)
   const [isEnvelopeOpen, setIsEnvelopeOpen] = useState(() => viewMode === 'guest');
 
-  // 9. Music playing state
+  // 9. Music playing state & modal
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [isMusicModalOpen, setIsMusicModalOpen] = useState(false);
+
+  // Sync music engine state
+  useEffect(() => {
+    const unsubscribe = weddingMusicEngine.subscribe((state) => {
+      setIsMusicPlaying(state.isPlaying);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Sync initial music track from config if specified
+  useEffect(() => {
+    if (config.selectedTrackId) {
+      weddingMusicEngine.setTrack(config.selectedTrackId, config.customAudioUrl);
+    }
+  }, [config.selectedTrackId, config.customAudioUrl]);
 
   const handleToggleMusic = () => {
     const newState = weddingMusicEngine.toggle();
@@ -308,26 +350,57 @@ export default function App() {
   // VIEW: CLIENT PORTAL (Pengantin mengelola daftar tamu & membagikan link)
   // =========================================================================
   if (viewMode === 'client') {
+    // Gate: Require client authentication
+    if (!isClientAuthenticated) {
+      return (
+        <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] flex items-center justify-center p-4">
+          <AccessLoginModal
+            isOpen={true}
+            onClose={() => changeViewMode('guest')}
+            initialRole="client"
+            lockRole={true}
+            clientPasscode={config.clientPasscode}
+            onSelectRole={(role) => {
+              if (role === 'client') {
+                try {
+                  localStorage.setItem('niskala_auth_client', 'true');
+                  sessionStorage.setItem('niskala_auth_client', 'true');
+                } catch {}
+                setIsClientAuthenticated(true);
+              }
+            }}
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA]">
-        {/* Floating Quick Role Switcher Bar */}
-        <div className="sticky top-2 z-50 max-w-fit mx-auto bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-1.5 text-xs mb-2">
+        {/* Floating Client Top Bar */}
+        <div className="sticky top-2 z-50 max-w-fit mx-auto bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-2 text-xs mb-2">
           <button
             onClick={() => changeViewMode('guest')}
-            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all cursor-pointer"
           >
             ← Undangan Tamu
           </button>
           <span className="text-[#D9CEBF]">|</span>
           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#B89047] text-white shadow-xs">
-            Portal Klien
+            Portal Klien (Pengantin)
           </span>
           <span className="text-[#D9CEBF]">|</span>
           <button
-            onClick={() => changeViewMode('admin')}
-            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
+            onClick={() => {
+              try {
+                localStorage.removeItem('niskala_auth_client');
+                sessionStorage.removeItem('niskala_auth_client');
+              } catch {}
+              setIsClientAuthenticated(false);
+              changeViewMode('guest');
+            }}
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer"
           >
-            Master Admin →
+            Keluar
           </button>
         </div>
 
@@ -339,6 +412,25 @@ export default function App() {
           onBulkAddGuests={handleBulkAddGuests}
           onDeleteGuest={handleDeleteGuest}
           onBackToInvitation={() => changeViewMode('guest')}
+          onOpenMusicModal={() => setIsMusicModalOpen(true)}
+          onOpenCustomizer={() => setIsCustomizerOpen(true)}
+        />
+
+        {/* Music Switcher Modal for Client */}
+        <MusicSwitcherModal
+          isOpen={isMusicModalOpen}
+          onClose={() => setIsMusicModalOpen(false)}
+          config={config}
+          onUpdateConfig={handleSaveConfig}
+        />
+
+        {/* Photo & Customizer Modal for Client */}
+        <CustomizerModal
+          config={config}
+          isOpen={isCustomizerOpen}
+          onClose={() => setIsCustomizerOpen(false)}
+          onSaveConfig={handleSaveConfig}
+          onResetDefault={handleResetDefault}
         />
       </div>
     );
@@ -348,20 +440,43 @@ export default function App() {
   // VIEW: ADMIN DASHBOARD (Master admin mengubah seluruh isi web undangan)
   // =========================================================================
   if (viewMode === 'admin') {
+    // Gate: Require admin authentication (passcode: noetic123)
+    if (!isAdminAuthenticated) {
+      return (
+        <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] flex items-center justify-center p-4">
+          <AccessLoginModal
+            isOpen={true}
+            onClose={() => changeViewMode('guest')}
+            initialRole="admin"
+            lockRole={true}
+            onSelectRole={(role) => {
+              if (role === 'admin') {
+                try {
+                  localStorage.setItem('niskala_auth_admin', 'true');
+                  sessionStorage.setItem('niskala_auth_admin', 'true');
+                } catch {}
+                setIsAdminAuthenticated(true);
+              }
+            }}
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA]">
-        {/* Floating Quick Role Switcher Bar */}
-        <div className="sticky top-2 z-50 max-w-fit mx-auto bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-1.5 text-xs mb-2">
+        {/* Floating Admin Top Bar */}
+        <div className="sticky top-2 z-50 max-w-fit mx-auto bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-2 text-xs mb-2">
           <button
             onClick={() => changeViewMode('guest')}
-            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all cursor-pointer"
           >
             ← Undangan Tamu
           </button>
           <span className="text-[#D9CEBF]">|</span>
           <button
             onClick={() => changeViewMode('client')}
-            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all cursor-pointer"
           >
             Portal Klien
           </button>
@@ -369,6 +484,20 @@ export default function App() {
           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#B89047] text-white shadow-xs">
             Master Admin
           </span>
+          <span className="text-[#D9CEBF]">|</span>
+          <button
+            onClick={() => {
+              try {
+                localStorage.removeItem('niskala_auth_admin');
+                sessionStorage.removeItem('niskala_auth_admin');
+              } catch {}
+              setIsAdminAuthenticated(false);
+              changeViewMode('guest');
+            }}
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer"
+          >
+            Keluar
+          </button>
         </div>
 
         <AdminDashboard
@@ -384,43 +513,17 @@ export default function App() {
   }
 
   // =========================================================================
-  // VIEW: GUEST INVITATION (Tamu hanya bisa melihat undangan & mengisi RSVP)
+  // VIEW: GUEST INVITATION (Tamu hanya melihat undangan - Bersih & Khidmat)
   // =========================================================================
   return (
     <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA] transition-colors duration-300 relative selection:bg-[#B89047]/30">
-      
-      {/* Floating Quick Role Switcher Bar (Direct 1-Click Access) */}
-      <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50 bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-2 text-xs">
-        <button
-          onClick={() => changeViewMode('guest')}
-          className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all ${
-            viewMode === 'guest'
-              ? 'bg-[#B89047] text-white shadow-xs font-semibold'
-              : 'text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047]'
-          }`}
-        >
-          👁️ Tamu
-        </button>
-        <button
-          onClick={() => changeViewMode('client')}
-          className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
-        >
-          💍 Klien
-        </button>
-        <button
-          onClick={() => changeViewMode('admin')}
-          className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all"
-        >
-          ⚙️ Admin
-        </button>
-      </div>
-      
       {/* 1. Opening Cover Envelope Modal */}
       <OpeningEnvelopeModal
         config={config}
         guestName={guestName}
         isOpen={isEnvelopeOpen}
         onOpenInvitation={handleOpenInvitation}
+        onOpenMusicModal={() => setIsMusicModalOpen(true)}
       />
 
       {/* 2. Top Bar Navigation (Strict 3-Zone Contract) */}
@@ -430,6 +533,7 @@ export default function App() {
         onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
         isMusicPlaying={isMusicPlaying}
         onToggleMusic={handleToggleMusic}
+        onOpenMusicModal={() => setIsMusicModalOpen(true)}
         onOpenCustomizer={() => setIsCustomizerOpen(true)}
         onOpenQrPass={() => setIsQrPassOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
@@ -484,6 +588,15 @@ export default function App() {
       <FloatingNav
         isMusicPlaying={isMusicPlaying}
         onToggleMusic={handleToggleMusic}
+        onOpenMusicModal={() => setIsMusicModalOpen(true)}
+      />
+
+      {/* 12. Music Switcher & Preview Modal */}
+      <MusicSwitcherModal
+        isOpen={isMusicModalOpen}
+        onClose={() => setIsMusicModalOpen(false)}
+        config={config}
+        onUpdateConfig={handleSaveConfig}
       />
 
       {/* 12. Digital Pass QR Modal */}
@@ -522,7 +635,17 @@ export default function App() {
       <AccessLoginModal
         isOpen={isAccessModalOpen}
         onClose={() => setIsAccessModalOpen(false)}
-        onSelectRole={(role) => setViewMode(role)}
+        clientPasscode={config.clientPasscode}
+        onSelectRole={(role) => {
+          if (role === 'admin') {
+            try { sessionStorage.setItem('niskala_auth_admin', 'true'); } catch {}
+            setIsAdminAuthenticated(true);
+          } else if (role === 'client') {
+            try { sessionStorage.setItem('niskala_auth_client', 'true'); } catch {}
+            setIsClientAuthenticated(true);
+          }
+          changeViewMode(role);
+        }}
       />
 
     </div>

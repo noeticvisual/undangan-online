@@ -78,28 +78,14 @@ export const FooterSection: React.FC<FooterSectionProps> = ({ config, onOpenCust
           </div>
         </div>
 
-        {/* Scroll To Top & Portal Links */}
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-[#8C7A6B] dark:text-[#A89E94] mb-8">
+        {/* Scroll To Top */}
+        <div className="flex items-center justify-center gap-4 text-xs text-[#8C7A6B] dark:text-[#A89E94] mb-8">
           <button
             onClick={scrollToTop}
             className="inline-flex items-center gap-1.5 hover:text-[#B89047] transition-colors cursor-pointer"
           >
             <ArrowUp className="w-3.5 h-3.5" />
             <span>Kembali ke Atas</span>
-          </button>
-          <span>·</span>
-          <button
-            onClick={onOpenPortalLogin}
-            className="hover:text-[#B89047] transition-colors cursor-pointer font-medium"
-          >
-            Akses Klien &amp; Admin
-          </button>
-          <span>·</span>
-          <button
-            onClick={onOpenCustomizer}
-            className="hover:text-[#B89047] transition-colors cursor-pointer"
-          >
-            Hosting &amp; Domain
           </button>
         </div>
 

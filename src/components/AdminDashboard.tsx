@@ -19,6 +19,17 @@ import {
   FileCode,
   Shield,
   Heart,
+  Disc,
+  Play,
+  Pause,
+  Volume2,
+  Music,
+  Sparkles,
+  KeyRound,
+  Copy,
+  Eye,
+  EyeOff,
+  Lock,
 } from 'lucide-react';
 import {
   WeddingConfig,
@@ -28,12 +39,21 @@ import {
   BankAccount,
   GalleryItem,
   SupabaseConfig,
+  MusicTrack,
 } from '../types/wedding';
 import {
   getStoredSupabaseConfig,
   saveStoredSupabaseConfig,
   supabaseWeddingService,
 } from '../services/supabase';
+import {
+  AVAILABLE_WEDDING_TRACKS,
+  weddingMusicEngine,
+} from '../services/audioPlayer';
+import {
+  formatImageUrl,
+  isGoogleDriveUrl,
+} from '../utils/googleDrive';
 
 interface AdminDashboardProps {
   config: WeddingConfig;
@@ -53,8 +73,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onBackToInvitation,
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'couple' | 'events' | 'story' | 'gallery' | 'gifts' | 'rsvps' | 'supabase' | 'vercel'
+    'couple' | 'events' | 'story' | 'gallery' | 'gifts' | 'music' | 'rsvps' | 'supabase' | 'vercel'
   >('couple');
+
+  // Audio preview playing state inside admin
+  const [previewPlayingId, setPreviewPlayingId] = useState<string | null>(null);
+
+  // Client portal security & share state
+  const [showClientPasscode, setShowClientPasscode] = useState(false);
+  const [copiedClientLink, setCopiedClientLink] = useState(false);
+  const [copiedClientMessage, setCopiedClientMessage] = useState(false);
 
   // Working copy of config
   const [formData, setFormData] = useState<WeddingConfig>(config);
@@ -208,9 +236,10 @@ CREATE POLICY "Public full access rsvps" ON public.wedding_rsvps FOR ALL USING (
             { id: 'story', label: '3. Kisah Cinta', icon: Heart },
             { id: 'gallery', label: '4. Galeri Foto', icon: Image },
             { id: 'gifts', label: '5. Rekening & Amplop', icon: CreditCard },
-            { id: 'rsvps', label: `6. RSVP & Tamu (${rsvps.length})`, icon: Settings },
-            { id: 'supabase', label: '7. Supabase Database', icon: Database },
-            { id: 'vercel', label: '8. Hosting Vercel', icon: Cloud },
+            { id: 'music', label: '6. Musik Latar', icon: Disc },
+            { id: 'rsvps', label: `7. RSVP & Tamu (${rsvps.length})`, icon: Settings },
+            { id: 'supabase', label: '8. Supabase Database', icon: Database },
+            { id: 'vercel', label: '9. Hosting Vercel', icon: Cloud },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -232,10 +261,91 @@ CREATE POLICY "Public full access rsvps" ON public.wedding_rsvps FOR ALL USING (
         </div>
 
         {/* ========================================================================= */}
-        {/* TAB 1: MEMPELAI & KUTIPAN */}
+        {/* TAB 1: MEMPELAI, KUTIPAN & AKSES KLIEN */}
         {/* ========================================================================= */}
         {activeTab === 'couple' && (
           <div className="space-y-6 max-w-4xl text-xs">
+            {/* 1. Client Portal Access & Secret Passcode Management */}
+            <div className="bg-[#FAF7F2] dark:bg-[#1A221F] p-6 rounded-2xl border-2 border-[#B89047]/40 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E8DFD3] dark:border-[#2C3833]">
+                <div>
+                  <h3 className="font-semibold text-sm text-[#B89047] uppercase tracking-wider flex items-center gap-2">
+                    <KeyRound className="w-4 h-4 text-[#B89047]" />
+                    Pengaturan Sandi &amp; Tautan Portal Klien (Pengantin)
+                  </h3>
+                  <p className="text-[#8C7A6B] dark:text-[#A89E94] mt-0.5 text-xs">
+                    Admin membuat sandi di sini, lalu bagikan tautan ini ke klien pengantin agar mereka dapat mengelola daftar tamu &amp; pesan WhatsApp.
+                  </p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#B89047]/10 text-[#B89047] border border-[#B89047]/20 self-start sm:self-auto shrink-0">
+                  🔒 Rahasia (Tidak Tampil di Web Tamu)
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                <div>
+                  <label className="block font-medium mb-1 text-[#25201C] dark:text-[#FAF7F2]">
+                    Sandi / Kode Akses Klien (Dibuat &amp; Diatur oleh Admin)
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7A6B]" />
+                    <input
+                      type={showClientPasscode ? 'text' : 'password'}
+                      value={formData.clientPasscode || ''}
+                      onChange={(e) =>
+                        setFormData({ ...formData, clientPasscode: e.target.value })
+                      }
+                      placeholder="Masukkan kode akses klien..."
+                      className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-white dark:bg-[#141A17] font-mono text-xs text-[#25201C] dark:text-[#FAF7F2]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowClientPasscode(!showClientPasscode)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8C7A6B] hover:text-[#25201C] dark:hover:text-white cursor-pointer"
+                      title={showClientPasscode ? 'Sembunyikan' : 'Tampilkan sandi'}
+                    >
+                      {showClientPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-[#8C7A6B] dark:text-[#A89E94] mt-1">
+                    *Klik tombol <strong>"Simpan Perubahan"</strong> di atas setelah mengubah kode sandi ini.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const clientUrl = `${window.location.origin}/?portal=client`;
+                      navigator.clipboard.writeText(clientUrl);
+                      setCopiedClientLink(true);
+                      setTimeout(() => setCopiedClientLink(false), 2500);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-white dark:bg-[#141A17] hover:border-[#B89047] text-[#25201C] dark:text-[#FAF7F2] font-medium transition-colors cursor-pointer text-xs"
+                  >
+                    {copiedClientLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-[#B89047]" />}
+                    <span>{copiedClientLink ? 'Tautan Tersalin!' : 'Salin Tautan Portal Klien'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const clientUrl = `${window.location.origin}/?portal=client`;
+                      const clientPass = formData.clientPasscode || 'mayaarya2026';
+                      const msg = `Halo ${formData.groom.nickName} & ${formData.bride.nickName}!\n\nBerikut tautan portal khusus untuk mengelola daftar nama tamu undangan, membuat link personal, dan memantau RSVP pernikahan kalian:\n👉 ${clientUrl}\n\n🔑 Kode Akses Masuk: ${clientPass}\n\n(Mohon simpan dan jaga kerahasiaan kode akses ini agar tidak dibagikan kepada tamu undangan).`;
+                      navigator.clipboard.writeText(msg);
+                      setCopiedClientMessage(true);
+                      setTimeout(() => setCopiedClientMessage(false), 2500);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#B89047] to-[#A37E38] text-white font-medium hover:opacity-95 transition-opacity cursor-pointer text-xs"
+                  >
+                    {copiedClientMessage ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedClientMessage ? 'Pesan WA Tersalin!' : 'Salin Format Pesan WhatsApp untuk Klien'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Groom Section */}
             <div className="bg-[#FAF7F2] dark:bg-[#1A221F] p-6 rounded-2xl border border-[#E8DFD3] dark:border-[#2C3833] shadow-xs space-y-4">
               <h3 className="font-semibold text-sm text-[#B89047] uppercase tracking-wider flex items-center gap-2">
@@ -315,15 +425,37 @@ CREATE POLICY "Public full access rsvps" ON public.wedding_rsvps FOR ALL USING (
                 </div>
               </div>
               <div>
-                <label className="block font-medium mb-1">URL Foto Mempelai Pria</label>
-                <input
-                  type="text"
-                  value={formData.groom.photoUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, groom: { ...formData.groom, photoUrl: e.target.value } })
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] font-mono text-[11px]"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-medium">URL Foto Mempelai Pria</label>
+                  {isGoogleDriveUrl(formData.groom.photoUrl) && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                      ✓ Link Google Drive Terdeteksi
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-14 rounded-lg overflow-hidden border border-[#D9CEBF] dark:border-[#2F3D36] bg-slate-100 dark:bg-black/30 shrink-0">
+                    <img
+                      src={formatImageUrl(formData.groom.photoUrl, '/src/assets/images/groom_portrait_1790611004426.jpg')}
+                      alt="Preview Foto Pria"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={formData.groom.photoUrl}
+                      onChange={(e) =>
+                        setFormData({ ...formData, groom: { ...formData.groom, photoUrl: e.target.value } })
+                      }
+                      placeholder="Tempel link Google Drive atau URL foto..."
+                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] font-mono text-[11px]"
+                    />
+                    <p className="text-[10px] text-[#8C7A6B] dark:text-[#A89E94] mt-1">
+                      💡 Bisa tautan Google Drive (contoh: <code>drive.google.com/file/d/.../view</code>). Pastikan setelan file: <em>Siapa saja yang memiliki link</em>.
+                    </p>
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="block font-medium mb-1">Deskripsi Singkat / Bio Pria</label>
@@ -417,15 +549,37 @@ CREATE POLICY "Public full access rsvps" ON public.wedding_rsvps FOR ALL USING (
                 </div>
               </div>
               <div>
-                <label className="block font-medium mb-1">URL Foto Mempelai Wanita</label>
-                <input
-                  type="text"
-                  value={formData.bride.photoUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, bride: { ...formData.bride, photoUrl: e.target.value } })
-                  }
-                  className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] font-mono text-[11px]"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-medium">URL Foto Mempelai Wanita</label>
+                  {isGoogleDriveUrl(formData.bride.photoUrl) && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                      ✓ Link Google Drive Terdeteksi
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-14 rounded-lg overflow-hidden border border-[#D9CEBF] dark:border-[#2F3D36] bg-slate-100 dark:bg-black/30 shrink-0">
+                    <img
+                      src={formatImageUrl(formData.bride.photoUrl, '/src/assets/images/bride_portrait_1790611016646.jpg')}
+                      alt="Preview Foto Wanita"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={formData.bride.photoUrl}
+                      onChange={(e) =>
+                        setFormData({ ...formData, bride: { ...formData.bride, photoUrl: e.target.value } })
+                      }
+                      placeholder="Tempel link Google Drive atau URL foto..."
+                      className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] font-mono text-[11px]"
+                    />
+                    <p className="text-[10px] text-[#8C7A6B] dark:text-[#A89E94] mt-1">
+                      💡 Bisa tautan Google Drive (contoh: <code>drive.google.com/file/d/.../view</code>). Pastikan setelan file: <em>Siapa saja yang memiliki link</em>.
+                    </p>
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="block font-medium mb-1">Deskripsi Singkat / Bio Wanita</label>
@@ -711,58 +865,145 @@ CREATE POLICY "Public full access rsvps" ON public.wedding_rsvps FOR ALL USING (
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 4: GALERI FOTO */}
+        {/* TAB 4: GALERI FOTO & LATAR BELAKANG */}
         {/* ========================================================================= */}
         {activeTab === 'gallery' && (
           <div className="space-y-6 max-w-4xl text-xs">
-            <div className="flex items-center justify-between">
-              <p className="text-[#8C7A6B] dark:text-[#A89E94]">
-                Kelola daftar foto prewedding dan momen bahagia yang ditampilkan di galeri Bento.
-              </p>
+            {/* Google Drive Informational Tip Banner */}
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3">
+              <Sparkles className="w-4 h-4 text-[#B89047] shrink-0 mt-0.5" />
+              <div className="text-[11px] leading-relaxed">
+                <strong className="text-[#B89047] block mb-0.5 font-semibold">
+                  Mendukung Tautan Langsung &amp; Google Drive
+                </strong>
+                <p className="text-[#6C5E53] dark:text-[#B4AAA0]">
+                  Anda dapat menyalin tautan berbagi (*share link*) file foto dari Google Drive, URL gambar online, atau aset lokal.
+                  <strong> Catatan penting:</strong> Pastikan setelan berbagi di Google Drive telah diubah menjadi <em>"Siapa saja yang memiliki link" (Anyone with the link) → "Pelihat" (Viewer)</em>.
+                </p>
+              </div>
+            </div>
+
+            {/* 1. Background / Hero Cover Image Manager */}
+            <div className="bg-[#FAF7F2] dark:bg-[#1A221F] p-6 rounded-2xl border border-[#E8DFD3] dark:border-[#2C3833] shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#E8DFD3] dark:border-[#2C3833]">
+                <div>
+                  <h3 className="font-semibold text-sm text-[#B89047] uppercase tracking-wider flex items-center gap-2">
+                    <Image className="w-4 h-4" />
+                    Foto Latar Belakang Utama (Hero Background)
+                  </h3>
+                  <p className="text-[#8C7A6B] dark:text-[#A89E94] mt-0.5">
+                    Foto beresolusi tinggi yang tampil di bagian paling atas halaman undangan utama.
+                  </p>
+                </div>
+                {isGoogleDriveUrl(formData.heroImageUrl || '') && (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">
+                    ✓ Google Drive Aktif
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start gap-4">
+                <div className="w-full sm:w-48 h-32 rounded-xl overflow-hidden border border-[#D9CEBF] dark:border-[#2F3D36] bg-slate-100 dark:bg-black/30 shrink-0">
+                  <img
+                    src={formatImageUrl(
+                      formData.heroImageUrl || formData.gallery[0]?.url,
+                      '/src/assets/images/hero_wedding_couple_1790610979338.jpg'
+                    )}
+                    alt="Preview Foto Latar Belakang"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 w-full space-y-2">
+                  <label className="block font-medium">Tautan URL Foto Latar Belakang (Google Drive / Direct Link)</label>
+                  <input
+                    type="text"
+                    value={formData.heroImageUrl || ''}
+                    onChange={(e) => setFormData({ ...formData, heroImageUrl: e.target.value })}
+                    placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                    className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] font-mono text-[11px]"
+                  />
+                  <p className="text-[10px] text-[#8C7A6B] dark:text-[#A89E94]">
+                    Jika dikosongkan, sistem akan otomatis menggunakan foto pertama dari album galeri di bawah.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Photo Album / Gallery List */}
+            <div className="flex items-center justify-between pt-2">
+              <div>
+                <h3 className="font-semibold text-sm text-[#25201C] dark:text-[#FAF7F2]">
+                  Album Galeri Foto Pernikahan ({formData.gallery.length} Foto)
+                </h3>
+                <p className="text-[#8C7A6B] dark:text-[#A89E94] mt-0.5">
+                  Foto-foto yang tampil dalam tata letak Bento interaktif &amp; Lightbox layar penuh.
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => {
                   const newPhoto: GalleryItem = {
                     id: `g-${Date.now()}`,
-                    url: '/src/assets/images/hero_wedding_couple_1790610979338.jpg',
+                    url: 'https://drive.google.com/file/d/sample/view',
                     caption: 'Momen penuh kehangatan bersama.',
                     category: 'prewedding',
                   };
                   setFormData({ ...formData, gallery: [...formData.gallery, newPhoto] });
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#B89047] text-white font-medium cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#B89047] text-white font-medium cursor-pointer hover:bg-[#A37E38] transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Tambah Foto</span>
+                <span>Tambah Foto Album</span>
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {formData.gallery.map((photo, idx) => (
-                <div
-                  key={photo.id}
-                  className="bg-[#FAF7F2] dark:bg-[#1A221F] p-4 rounded-2xl border border-[#E8DFD3] dark:border-[#2C3833] shadow-xs space-y-3"
-                >
-                  <div className="h-36 rounded-xl overflow-hidden bg-slate-100 dark:bg-black/30">
-                    <img
-                      src={photo.url}
-                      alt={photo.caption}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">URL Foto</label>
-                    <input
-                      type="text"
-                      value={photo.url}
-                      onChange={(e) => {
-                        const updated = [...formData.gallery];
-                        updated[idx].url = e.target.value;
-                        setFormData({ ...formData, gallery: updated });
-                      }}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] font-mono text-[11px]"
-                    />
-                  </div>
+              {formData.gallery.map((photo, idx) => {
+                const isDrive = isGoogleDriveUrl(photo.url);
+
+                return (
+                  <div
+                    key={photo.id}
+                    className="bg-[#FAF7F2] dark:bg-[#1A221F] p-4 rounded-2xl border border-[#E8DFD3] dark:border-[#2C3833] shadow-xs space-y-3"
+                  >
+                    <div className="h-44 rounded-xl overflow-hidden bg-slate-100 dark:bg-black/30 relative">
+                      <img
+                        src={formatImageUrl(
+                          photo.url,
+                          '/src/assets/images/gallery_wedding_moments_1790611031670.jpg'
+                        )}
+                        alt={photo.caption}
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (target.src !== '/src/assets/images/gallery_wedding_moments_1790611031670.jpg') {
+                            target.src = '/src/assets/images/gallery_wedding_moments_1790611031670.jpg';
+                          }
+                        }}
+                        className="w-full h-full object-cover"
+                      />
+                      {isDrive && (
+                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-600 text-white shadow-xs">
+                          Google Drive
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block font-medium">URL Foto (Google Drive / Link Gambar)</label>
+                        <span className="text-[10px] text-[#8C7A6B]">Foto #{idx + 1}</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={photo.url}
+                        onChange={(e) => {
+                          const updated = [...formData.gallery];
+                          updated[idx].url = e.target.value;
+                          setFormData({ ...formData, gallery: updated });
+                        }}
+                        placeholder="https://drive.google.com/file/d/.../view"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] font-mono text-[11px]"
+                      />
+                    </div>
                   <div>
                     <label className="block font-medium mb-1">Keterangan / Caption</label>
                     <input
@@ -790,9 +1031,10 @@ CREATE POLICY "Public full access rsvps" ON public.wedding_rsvps FOR ALL USING (
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
+        </div>
         )}
 
         {/* ========================================================================= */}
@@ -938,7 +1180,162 @@ CREATE POLICY "Public full access rsvps" ON public.wedding_rsvps FOR ALL USING (
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 6: KELOLA RSVP & BUKU TAMU */}
+        {/* TAB 6: MUSIK LATAR BELAKANG */}
+        {/* ========================================================================= */}
+        {activeTab === 'music' && (
+          <div className="space-y-6 max-w-4xl text-xs">
+            <div className="bg-[#FAF7F2] dark:bg-[#1A221F] p-6 rounded-2xl border border-[#E8DFD3] dark:border-[#2C3833] shadow-xs space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-[#E8DFD3] dark:border-[#2C3833]">
+                <div>
+                  <h3 className="font-semibold text-sm text-[#B89047] uppercase tracking-wider flex items-center gap-2">
+                    <Disc className="w-4 h-4" />
+                    Pilihan Melodi Latar Undangan (Background Music)
+                  </h3>
+                  <p className="text-[#8C7A6B] dark:text-[#A89E94] mt-1 text-xs">
+                    Pilih aransemen melodi sakral yang akan otomatis berputar saat tamu menekan tombol "Buka Undangan".
+                  </p>
+                </div>
+              </div>
+
+              {/* Preset Track Selection Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {AVAILABLE_WEDDING_TRACKS.map((track) => {
+                  const isSelected = (formData.selectedTrackId || 'canon_in_d') === track.id;
+                  const isPlaying = previewPlayingId === track.id;
+
+                  const handlePreview = (e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    if (isPlaying) {
+                      weddingMusicEngine.stop();
+                      setPreviewPlayingId(null);
+                    } else {
+                      weddingMusicEngine.setTrack(track.id, track.id === 'custom_url' ? formData.customAudioUrl : undefined);
+                      weddingMusicEngine.start();
+                      setPreviewPlayingId(track.id);
+                    }
+                  };
+
+                  const handleSelectThis = () => {
+                    setFormData({
+                      ...formData,
+                      musicTitle: track.title,
+                      musicArtist: track.artist,
+                      selectedTrackId: track.id,
+                    });
+                    weddingMusicEngine.setTrack(track.id, track.id === 'custom_url' ? formData.customAudioUrl : undefined);
+                  };
+
+                  return (
+                    <div
+                      key={track.id}
+                      onClick={handleSelectThis}
+                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                        isSelected
+                          ? 'bg-white dark:bg-[#232D28] border-[#B89047] shadow-sm ring-2 ring-[#B89047]/30'
+                          : 'bg-[#F9F5EF]/60 dark:bg-[#161B19]/60 border-[#E8DFD3] dark:border-[#2C3833] hover:bg-white dark:hover:bg-[#1E2622]'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <h4 className="font-serif-luxury text-base font-bold text-[#2C2724] dark:text-[#F3EEEA]">
+                            {track.title}
+                          </h4>
+                          {isSelected && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#B89047] text-white">
+                              Terpilih
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-[#7B6E62] dark:text-[#A79D93] mb-2 font-medium">
+                          {track.artist}
+                        </p>
+                        <p className="text-xs text-[#8C7E72] dark:text-[#8E9B94] leading-relaxed">
+                          {track.description}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-[#E8DFD3]/60 dark:border-[#2C3833]/60 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={handlePreview}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                            isPlaying
+                              ? 'bg-amber-600 text-white'
+                              : 'bg-[#FAF7F2] dark:bg-[#141A17] border border-[#D9CEBF] dark:border-[#2F3D36] text-[#2C2724] dark:text-[#F3EEEA] hover:border-[#B89047]'
+                          }`}
+                        >
+                          {isPlaying ? (
+                            <>
+                              <Pause className="w-3 h-3 fill-current" />
+                              <span>Jeda Uji Dengar</span>
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-3 h-3 fill-current" />
+                              <span>Uji Dengar</span>
+                            </>
+                          )}
+                        </button>
+                        <span className="text-[11px] text-[#8C7E72] dark:text-[#8E9B94] tabular-nums">
+                          {track.durationFormatted}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Custom Audio URL input if custom is chosen */}
+              {(formData.selectedTrackId === 'custom_url') && (
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                  <label className="block font-semibold text-[#B89047]">
+                    Tautan Langsung File MP3 (Audio URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.customAudioUrl || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        customAudioUrl: e.target.value,
+                      })
+                    }
+                    placeholder="https://domain-anda.com/audio/lagu-pernikahan.mp3"
+                    className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-white dark:bg-[#141A17] text-xs"
+                  />
+                  <p className="text-[11px] text-[#8C7A6B] dark:text-[#A89E94]">
+                    Pastikan tautan dapat diakses secara publik dan berakhir dengan ekstensi audio (.mp3, .m4a, dll.).
+                  </p>
+                </div>
+              )}
+
+              {/* Label Customization */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#E8DFD3] dark:border-[#2C3833]">
+                <div>
+                  <label className="block font-medium mb-1">Judul Musik (Ditampilkan pada Pemutar)</label>
+                  <input
+                    type="text"
+                    value={formData.musicTitle}
+                    onChange={(e) => setFormData({ ...formData, musicTitle: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Nama Musisi / Artis</label>
+                  <input
+                    type="text"
+                    value={formData.musicArtist}
+                    onChange={(e) => setFormData({ ...formData, musicArtist: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 7: KELOLA RSVP & BUKU TAMU */}
         {/* ========================================================================= */}
         {activeTab === 'rsvps' && (
           <div className="space-y-6 max-w-5xl text-xs">

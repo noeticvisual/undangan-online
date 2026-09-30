@@ -1,21 +1,37 @@
-import React, { useState } from 'react';
-import { X, Lock, Users, Shield, ArrowRight, AlertCircle, KeyRound } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Lock, Users, Shield, ArrowRight, AlertCircle, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { AppViewMode } from '../types/wedding';
 
 interface AccessLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectRole: (role: AppViewMode) => void;
+  clientPasscode?: string;
+  initialRole?: 'client' | 'admin';
+  lockRole?: boolean;
 }
 
 export const AccessLoginModal: React.FC<AccessLoginModalProps> = ({
   isOpen,
   onClose,
   onSelectRole,
+  clientPasscode,
+  initialRole = 'client',
+  lockRole = false,
 }) => {
-  const [selectedTarget, setSelectedTarget] = useState<'client' | 'admin'>('client');
+  const [selectedTarget, setSelectedTarget] = useState<'client' | 'admin'>(initialRole);
   const [pinInput, setPinInput] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedTarget(initialRole);
+      setPinInput('');
+      setErrorMessage('');
+      setShowPassword(false);
+    }
+  }, [isOpen, initialRole]);
 
   if (!isOpen) return null;
 
@@ -24,22 +40,20 @@ export const AccessLoginModal: React.FC<AccessLoginModalProps> = ({
     setErrorMessage('');
 
     if (selectedTarget === 'client') {
-      // Default PIN: klien123 or direct
-      if (pinInput.trim() === 'klien123' || pinInput.trim() === '1234' || pinInput.trim() === '') {
+      const expectedPasscode = (clientPasscode && clientPasscode.trim()) || 'mayaarya2026';
+      if (pinInput.trim() === expectedPasscode) {
         onSelectRole('client');
-        onClose();
         setPinInput('');
       } else {
-        setErrorMessage('PIN Klien salah. Gunakan default: klien123');
+        setErrorMessage('Kode akses salah. Silakan tanyakan kode akses kepada admin undangan.');
       }
     } else if (selectedTarget === 'admin') {
-      // Default PIN: admin123
-      if (pinInput.trim() === 'admin123' || pinInput.trim() === 'admin') {
+      // Admin passcode must be noetic123
+      if (pinInput.trim() === 'noetic123') {
         onSelectRole('admin');
-        onClose();
         setPinInput('');
       } else {
-        setErrorMessage('PIN Admin salah. Gunakan default: admin123');
+        setErrorMessage('Kode akses admin salah.');
       }
     }
   };
@@ -59,71 +73,84 @@ export const AccessLoginModal: React.FC<AccessLoginModalProps> = ({
         <div className="flex items-center gap-2 mb-2">
           <KeyRound className="w-5 h-5 text-[#B89047]" />
           <h3 className="font-serif-luxury text-2xl font-bold text-[#25201C] dark:text-[#FAF7F2]">
-            Akses Masuk Khusus
+            {selectedTarget === 'admin' ? 'Akses Panel Admin' : 'Akses Portal Klien'}
           </h3>
         </div>
         <p className="text-[#8C7A6B] dark:text-[#A89E94] mb-6">
-          Pilih portal yang ingin Anda akses (khusus Calon Pengantin atau Administrator).
+          {selectedTarget === 'admin'
+            ? 'Masukkan kode akses administrator untuk mengelola seluruh data undangan.'
+            : 'Masukkan kode akses yang diberikan oleh admin untuk mengelola daftar tamu & RSVP.'}
         </p>
 
-        {/* Role Segmented Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedTarget('client');
-              setErrorMessage('');
-            }}
-            className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-              selectedTarget === 'client'
-                ? 'border-[#B89047] bg-[#B89047]/10 text-[#25201C] dark:text-[#FAF7F2] shadow-xs'
-                : 'border-[#E2D5C3] dark:border-[#2C3833] text-[#736458] dark:text-[#A79D93]'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <Users className="w-4 h-4 text-[#B89047]" />
-              {selectedTarget === 'client' && <span className="w-2 h-2 rounded-full bg-[#B89047]" />}
-            </div>
-            <strong className="block text-xs font-semibold">Portal Klien</strong>
-            <span className="text-[10px] text-[#8C7A6B] dark:text-[#8E9B94]">Buat nama tamu &amp; kirim WhatsApp</span>
-          </button>
+        {/* Role Segmented Buttons (Only shown if lockRole is false) */}
+        {!lockRole && (
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTarget('client');
+                setErrorMessage('');
+              }}
+              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                selectedTarget === 'client'
+                  ? 'border-[#B89047] bg-[#B89047]/10 text-[#25201C] dark:text-[#FAF7F2] shadow-xs'
+                  : 'border-[#E2D5C3] dark:border-[#2C3833] text-[#736458] dark:text-[#A79D93]'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <Users className="w-4 h-4 text-[#B89047]" />
+                {selectedTarget === 'client' && <span className="w-2 h-2 rounded-full bg-[#B89047]" />}
+              </div>
+              <strong className="block text-xs font-semibold">Portal Klien</strong>
+              <span className="text-[10px] text-[#8C7A6B] dark:text-[#8E9B94]">Pengantin &amp; Tamu</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedTarget('admin');
-              setErrorMessage('');
-            }}
-            className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
-              selectedTarget === 'admin'
-                ? 'border-[#B89047] bg-[#B89047]/10 text-[#25201C] dark:text-[#FAF7F2] shadow-xs'
-                : 'border-[#E2D5C3] dark:border-[#2C3833] text-[#736458] dark:text-[#A79D93]'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <Shield className="w-4 h-4 text-[#B89047]" />
-              {selectedTarget === 'admin' && <span className="w-2 h-2 rounded-full bg-[#B89047]" />}
-            </div>
-            <strong className="block text-xs font-semibold">Panel Admin</strong>
-            <span className="text-[10px] text-[#8C7A6B] dark:text-[#8E9B94]">Ubah seluruh isi web, Supabase &amp; Vercel</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTarget('admin');
+                setErrorMessage('');
+              }}
+              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                selectedTarget === 'admin'
+                  ? 'border-[#B89047] bg-[#B89047]/10 text-[#25201C] dark:text-[#FAF7F2] shadow-xs'
+                  : 'border-[#E2D5C3] dark:border-[#2C3833] text-[#736458] dark:text-[#A79D93]'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <Shield className="w-4 h-4 text-[#B89047]" />
+                {selectedTarget === 'admin' && <span className="w-2 h-2 rounded-full bg-[#B89047]" />}
+              </div>
+              <strong className="block text-xs font-semibold">Panel Admin</strong>
+              <span className="text-[10px] text-[#8C7A6B] dark:text-[#8E9B94]">Master Konfigurasi</span>
+            </button>
+          </div>
+        )}
 
         {/* Form Login PIN */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block font-medium mb-1">
-              Masukkan PIN Keamanan ({selectedTarget === 'client' ? 'Default: klien123' : 'Default: admin123'})
+            <label className="block font-medium mb-1 text-[#25201C] dark:text-[#FAF7F2]">
+              Masukkan Kode Akses {selectedTarget === 'client' ? 'Klien (Pengantin)' : 'Admin'}
             </label>
             <div className="relative">
               <Lock className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C7A6B]" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
-                placeholder={selectedTarget === 'client' ? 'klien123' : 'admin123'}
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] focus:outline-hidden focus:ring-2 focus:ring-[#B89047]/50"
+                placeholder="Masukkan kode akses..."
+                autoFocus
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] focus:outline-hidden focus:ring-2 focus:ring-[#B89047]/50"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8C7A6B] hover:text-[#25201C] dark:hover:text-white cursor-pointer"
+                title={showPassword ? 'Sembunyikan' : 'Tampilkan'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -136,10 +163,18 @@ export const AccessLoginModal: React.FC<AccessLoginModalProps> = ({
 
           <button
             type="submit"
-            className="w-full py-2.5 px-4 text-xs font-medium text-white bg-gradient-to-r from-[#B89047] to-[#A37E38] hover:from-[#A88239] hover:to-[#916E2E] rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-2.5 px-4 text-xs font-medium text-white bg-gradient-to-r from-[#B89047] to-[#A37E38] hover:from-[#A88239] hover:to-[#916E2E] rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer font-semibold"
           >
             <span>Masuk ke {selectedTarget === 'client' ? 'Portal Klien' : 'Panel Admin'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2 text-xs text-[#8C7A6B] hover:text-[#25201C] dark:hover:text-[#FAF7F2] transition-colors cursor-pointer text-center"
+          >
+            ← Kembali ke Undangan Tamu
           </button>
         </form>
 

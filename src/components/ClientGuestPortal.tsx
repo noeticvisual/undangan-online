@@ -17,6 +17,8 @@ import {
   XCircle,
   Clock,
   Send,
+  Music,
+  Image,
 } from 'lucide-react';
 import { WeddingConfig, GuestItem, RSVPRecord } from '../types/wedding';
 
@@ -28,6 +30,8 @@ interface ClientGuestPortalProps {
   onBulkAddGuests: (names: string[], category: string) => void;
   onDeleteGuest: (id: string) => void;
   onBackToInvitation: () => void;
+  onOpenMusicModal?: () => void;
+  onOpenCustomizer?: () => void;
 }
 
 export const ClientGuestPortal: React.FC<ClientGuestPortalProps> = ({
@@ -38,6 +42,8 @@ export const ClientGuestPortal: React.FC<ClientGuestPortalProps> = ({
   onBulkAddGuests,
   onDeleteGuest,
   onBackToInvitation,
+  onOpenMusicModal,
+  onOpenCustomizer,
 }) => {
   // Add single guest state
   const [singleName, setSingleName] = useState('');
@@ -208,6 +214,26 @@ ${config.groom.nickName} & ${config.bride.nickName} sekeluarga`;
           </div>
 
           <div className="flex items-center gap-2.5">
+            {onOpenCustomizer && (
+              <button
+                onClick={onOpenCustomizer}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#1A221F] hover:border-[#B89047] transition-colors cursor-pointer"
+                title="Ganti foto latar belakang, mempelai & foto lainnya via Google Drive"
+              >
+                <Image className="w-3.5 h-3.5 text-[#B89047]" />
+                <span>Ganti Foto (Google Drive)</span>
+              </button>
+            )}
+            {onOpenMusicModal && (
+              <button
+                onClick={onOpenMusicModal}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-xl border border-[#B89047]/40 bg-[#B89047]/10 text-[#B89047] hover:bg-[#B89047]/20 transition-colors cursor-pointer"
+                title="Ganti atau atur musik pengiring undangan"
+              >
+                <Music className="w-3.5 h-3.5" />
+                <span>Atur Musik Latar</span>
+              </button>
+            )}
             <button
               onClick={handleExportCsv}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#1A221F] hover:border-[#B89047] transition-colors cursor-pointer"

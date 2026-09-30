@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, ChevronDown, CheckCircle } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
+import { formatImageUrl } from '../utils/googleDrive';
 
 interface HeroSectionProps {
   config: WeddingConfig;
@@ -54,9 +55,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, onOpenCalendar
       {/* Background Hero Image with measured scrim */}
       <div className="absolute inset-0 z-0">
         <img
-          src={config.gallery[0]?.url || '/src/assets/images/hero_wedding_couple_1790610979338.jpg'}
+          src={formatImageUrl(
+            config.heroImageUrl || config.gallery[0]?.url,
+            '/src/assets/images/hero_wedding_couple_1790610979338.jpg'
+          )}
           alt={`${config.groom.nickName} & ${config.bride.nickName} Wedding`}
           referrerPolicy="no-referrer"
+          onError={(e) => {
+            // Graceful fallback to default asset if external drive image fails to load
+            const target = e.currentTarget;
+            if (target.src !== '/src/assets/images/hero_wedding_couple_1790610979338.jpg') {
+              target.src = '/src/assets/images/hero_wedding_couple_1790610979338.jpg';
+            }
+          }}
           className="w-full h-full object-cover object-center filter brightness-[0.88] dark:brightness-[0.65] transition-transform duration-1000 scale-100"
         />
         {/* Measured scrim gradient for 4.5:1 text contrast */}
