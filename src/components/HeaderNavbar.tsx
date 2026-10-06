@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Volume2, VolumeX, QrCode, Share2, KeyRound } from 'lucide-react';
+import { Sun, Moon, Volume2, VolumeX, QrCode, Share2, KeyRound, SlidersHorizontal } from 'lucide-react';
 import { WeddingConfig } from '../types/wedding';
 
 interface HeaderNavbarProps {
@@ -9,7 +9,7 @@ interface HeaderNavbarProps {
   isMusicPlaying: boolean;
   onToggleMusic: () => void;
   onOpenMusicModal?: () => void;
-  onOpenCustomizer: () => void;
+  onOpenCustomizer?: () => void;
   onOpenQrPass: () => void;
   onOpenShare: () => void;
   onOpenPortalLogin: () => void;
@@ -22,6 +22,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   isMusicPlaying,
   onToggleMusic,
   onOpenMusicModal,
+  onOpenCustomizer,
   onOpenQrPass,
   onOpenShare,
   onOpenPortalLogin,
@@ -62,6 +63,18 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 
         {/* Zone 3: 1-2 primary actions (music disc, dark mode, action buttons) */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Quick Customizer button for scale, ratio & photo album */}
+          {onOpenCustomizer && (
+            <button
+              onClick={onOpenCustomizer}
+              title="Atur Skala, Rasio Foto & Album Undangan"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full text-[#851C28] dark:text-[#E8808D] bg-[#851C28]/10 hover:bg-[#851C28]/20 border border-[#851C28]/30 transition-all cursor-pointer shadow-2xs"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Skala &amp; Rasio</span>
+            </button>
+          )}
+
           {/* Music player toggle & switcher */}
           <div className="flex items-center rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#F4EFEA] dark:bg-[#1C2521] p-0.5">
             <button
@@ -84,10 +97,10 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             {onOpenMusicModal && (
               <button
                 onClick={onOpenMusicModal}
-                title="Tukar Melodi Musik Latar"
+                title="Pilih Melodi Musik Latar"
                 className="px-2 py-1 text-[10px] font-semibold text-[#B89047] border-l border-[#D9CEBF] dark:border-[#2F3D36] hover:bg-black/5 dark:hover:bg-white/5 rounded-r-full transition-colors cursor-pointer"
               >
-                Ganti
+                Musik
               </button>
             )}
           </div>

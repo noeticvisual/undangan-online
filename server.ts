@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -20,7 +20,7 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 app.use(express.json({ limit: '15mb' }));
 
 // Health check endpoints for Cloud Run & load balancers
-const healthHandler = (req, res) => {
+const healthHandler = (req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
     uptime: process.uptime(),
@@ -34,19 +34,23 @@ app.get('/healthz', healthHandler);
 app.get('/api/health', healthHandler);
 
 // Audio proxy endpoint for Google Drive & external MP3s
-app.get('/api/audio-proxy', proxyAudioStream);
-app.get('/api/drive-audio', proxyAudioStream);
+app.get('/api/audio-proxy', (req: Request, res: Response) => {
+  proxyAudioStream(req, res);
+});
+app.get('/api/drive-audio', (req: Request, res: Response) => {
+  proxyAudioStream(req, res);
+});
 
 // Projects API endpoints
-app.get('/api/projects', (req, res) => {
+app.get('/api/projects', (req: Request, res: Response) => {
   const projects = loadStoredProjects();
   res.json({ projects });
 });
 
-app.get('/api/projects/:slug', (req, res) => {
-  const slug = (req.params.slug || '').toLowerCase().trim();
+app.get('/api/projects/:slug', (req: Request, res: Response) => {
+  const slug = ((req.params.slug as string) || '').toLowerCase().trim();
   const projects = loadStoredProjects();
-  const found = projects.find((p) => p.slug.toLowerCase() === slug);
+  const found = projects.find((p: any) => p.slug.toLowerCase() === slug);
   if (found) {
     res.json({ project: found });
   } else {
@@ -54,7 +58,7 @@ app.get('/api/projects/:slug', (req, res) => {
   }
 });
 
-app.post('/api/projects', (req, res) => {
+app.post('/api/projects', (req: Request, res: Response) => {
   try {
     const project = req.body;
     if (!project || !project.slug) {
@@ -63,7 +67,7 @@ app.post('/api/projects', (req, res) => {
 
     const projects = loadStoredProjects();
     const existingIndex = projects.findIndex(
-      (p) => p.id === project.id || p.slug.toLowerCase() === project.slug.toLowerCase()
+      (p: any) => p.id === project.id || p.slug.toLowerCase() === project.slug.toLowerCase()
     );
 
     if (existingIndex >= 0) {
@@ -88,11 +92,11 @@ app.post('/api/projects', (req, res) => {
   }
 });
 
-app.delete('/api/projects/:id', (req, res) => {
+app.delete('/api/projects/:id', (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     let projects = loadStoredProjects();
-    projects = projects.filter((p) => p.id !== id && p.slug !== id);
+    projects = projects.filter((p: any) => p.id !== id && p.slug !== id);
     saveStoredProjects(projects);
     res.json({ success: true });
   } catch {
@@ -101,12 +105,12 @@ app.delete('/api/projects/:id', (req, res) => {
 });
 
 // RSVP API endpoints
-app.get('/api/rsvp', (req, res) => {
+app.get('/api/rsvp', (req: Request, res: Response) => {
   const rsvps = loadStoredRsvps();
   res.json({ rsvps });
 });
 
-app.post('/api/rsvp', (req, res) => {
+app.post('/api/rsvp', (req: Request, res: Response) => {
   try {
     const data = req.body;
     if (data && typeof data === 'object') {
@@ -146,7 +150,7 @@ if (fs.existsSync(distPath)) {
 }
 
 // SPA fallback for all remaining GET routes
-app.get('*', (req, res) => {
+app.get('*', (req: Request, res: Response) => {
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {

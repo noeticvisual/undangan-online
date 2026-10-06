@@ -8,7 +8,9 @@ export const GALLERY_MOMENTS = '/src/assets/images/gallery_wedding_moments_17906
 export const VENUE_AMBIANCE = '/src/assets/images/wedding_venue_ambiance_1790611045766.jpg';
 
 export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
+  templateId: 'minang-royal',
   heroImageUrl: HERO_IMAGE,
+  openingCoverPhotoUrl: HERO_IMAGE,
   groom: {
     fullName: 'Raden Arya Pratama, S.T.',
     nickName: 'Arya',
@@ -171,6 +173,14 @@ export const DEFAULT_WEDDING_CONFIG: WeddingConfig = {
       phone: '+62 813-9876-5432',
     },
   ],
+  openingCoverRatio: 'arched',
+  openingCoverScale: 100,
+  couplePhotoRatio: 'arched',
+  couplePhotoScale: 100,
+  galleryRatio: '4:5',
+  galleryPhotoSize: 'medium',
+  galleryAnimationEnabled: true,
+  galleryAnimationSpeed: 'normal',
 };
 
 export const INITIAL_RSVPS: RSVPRecord[] = [

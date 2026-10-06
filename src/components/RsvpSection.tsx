@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Send, CheckCircle2, XCircle, HelpCircle, MessageSquare, Users, Download, Copy, Check } from 'lucide-react';
 import { RSVPRecord } from '../types/wedding';
+import { PucuakRabuangDivider, SongketCorner } from './MinangOrnaments';
+import { FadeIn } from './FadeIn';
 
 interface RsvpSectionProps {
   initialGuestName?: string;
@@ -94,151 +96,167 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({
   };
 
   return (
-    <section id="rsvp" className="py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-      
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto mb-16">
-        <span className="text-xs uppercase tracking-[0.3em] text-[#8C7A6B] dark:text-[#A89E94] block mb-2">
-          Konfirmasi Kehadiran
-        </span>
-        <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#25201C] dark:text-[#FAF7F2] font-normal mb-4">
-          Buku Tamu &amp; RSVP
-        </h2>
-        <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#B89047] to-transparent mx-auto mb-4" />
-        <p className="text-xs sm:text-sm text-[#6C5E53] dark:text-[#B4AAA0] leading-relaxed">
-          Kirimkan konfirmasi kehadiran serta doa restu terbaik Anda untuk menemani awal lembaran baru kami.
-        </p>
-      </div>
+    <section id="rsvp" className="py-22 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#EAE0D2] via-[#F8F3EA] to-[#EEE5D8] dark:from-[#131916] dark:via-[#161C19] dark:to-[#141A17] transition-colors relative overflow-hidden">
+      {/* Warm fellowship ambient lighting */}
+      <div className="absolute top-12 left-1/3 w-80 h-80 bg-[#C5A059]/6 dark:bg-[#C5A059]/4 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-12 right-1/3 w-80 h-80 bg-[#851C28]/4 dark:bg-[#851C28]/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <div className="max-w-6xl mx-auto relative z-10">
         
-        {/* Left Column: RSVP Form (lg:col-span-5) */}
-        <div className="lg:col-span-5 bg-[#FAF7F2] dark:bg-[#1A221F] rounded-2xl p-6 sm:p-8 border border-[#E8DFD3] dark:border-[#2C3833] shadow-xs h-fit">
-          <h3 className="font-serif-luxury text-2xl font-semibold text-[#25201C] dark:text-[#FAF7F2] mb-1">
-            Formulir RSVP
-          </h3>
-          <p className="text-xs text-[#8C7A6B] dark:text-[#A89E94] mb-6">
-            Mohon isi formulir berikut sebelum tanggal 18 Oktober 2026.
-          </p>
-
-          {submitSuccess && (
-            <div className="mb-6 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-              <span>Terima kasih banyak! Konfirmasi dan doa restu Anda telah berhasil tersimpan.</span>
-            </div>
-          )}
-
-          {errorMessage && (
-            <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-xs text-red-800 dark:text-red-200 flex items-center gap-3">
-              <XCircle className="w-5 h-5 text-red-600 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Guest Name */}
-            <div>
-              <label className="block text-xs font-medium text-[#4A3F36] dark:text-[#D1C3B3] mb-1.5">
-                Nama Lengkap <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.guestName}
-                onChange={(e) => setFormData({ ...formData, guestName: e.target.value })}
-                placeholder="Contoh: dr. Bambang Hermanto & Keluarga"
-                className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] focus:outline-hidden focus:ring-2 focus:ring-[#B89047]/50"
-              />
-            </div>
-
-            {/* Attendance Choice */}
-            <div>
-              <label className="block text-xs font-medium text-[#4A3F36] dark:text-[#D1C3B3] mb-2">
-                Konfirmasi Kehadiran <span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'hadir', label: 'Pasti Hadir', icon: CheckCircle2 },
-                  { id: 'tidak_hadir', label: 'Berhalangan', icon: XCircle },
-                  { id: 'ragu', label: 'Masih Ragu', icon: HelpCircle },
-                ].map((opt) => {
-                  const Icon = opt.icon;
-                  const isSelected = formData.attendance === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() =>
-                        setFormData({
-                          ...formData,
-                          attendance: opt.id as 'hadir' | 'tidak_hadir' | 'ragu',
-                        })
-                      }
-                      className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                        isSelected
-                          ? 'border-[#B89047] bg-[#B89047]/10 text-[#B89047] dark:text-[#E6CA65] shadow-xs'
-                          : 'border-[#E2D5C3] dark:border-[#2C3833] text-[#736458] dark:text-[#A79D93] hover:border-[#B89047]/40'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 mb-1" />
-                      <span className="text-[11px] text-center leading-tight">{opt.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Guest Count (if attending) */}
-            {formData.attendance !== 'tidak_hadir' && (
-              <div>
-                <label className="block text-xs font-medium text-[#4A3F36] dark:text-[#D1C3B3] mb-1.5">
-                  Jumlah Orang yang Akan Hadir
-                </label>
-                <select
-                  value={formData.guestCount}
-                  onChange={(e) => setFormData({ ...formData, guestCount: Number(e.target.value) })}
-                  className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] focus:outline-hidden focus:ring-2 focus:ring-[#B89047]/50"
-                >
-                  <option value={1}>1 Orang</option>
-                  <option value={2}>2 Orang</option>
-                  <option value={3}>3 Orang</option>
-                  <option value={4}>4 Orang</option>
-                  <option value={5}>5 Orang</option>
-                </select>
-              </div>
-            )}
-
-            {/* Message / Wishes */}
-            <div>
-              <label className="block text-xs font-medium text-[#4A3F36] dark:text-[#D1C3B3] mb-1.5">
-                Ucapan Doa &amp; Harapan <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                required
-                rows={4}
-                value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                placeholder="Tuliskan ucapan dan doa terbaik untuk kedua mempelai..."
-                className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] focus:outline-hidden focus:ring-2 focus:ring-[#B89047]/50"
-              />
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 px-6 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-[#B89047] via-[#C9A050] to-[#A37E38] hover:from-[#A88239] hover:to-[#916E2E] rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
-            >
-              <Send className="w-4 h-4" />
-              <span>{isSubmitting ? 'Mengirimkan...' : 'Kirim Konfirmasi & Doa'}</span>
-            </button>
-          </form>
+        {/* Header */}
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <FadeIn direction="up" delay={50}>
+            <span className="text-xs uppercase tracking-[0.3em] font-semibold text-[#851C28] dark:text-[#E8808D] block mb-2">
+              Konfirmasi Kehadiran &amp; Doa Restu
+            </span>
+            <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#25201C] dark:text-[#FAF7F2] font-normal mb-3">
+              Buku Tamu &amp; RSVP
+            </h2>
+            <PucuakRabuangDivider className="w-52 mx-auto mb-4 opacity-80" color="#C5A059" />
+            <p className="text-xs sm:text-sm text-[#6C5E53] dark:text-[#B4AAA0] leading-relaxed">
+              Kirimkan konfirmasi kehadiran serta doa restu terbaik Anda untuk menemani awal lembaran baru kami.
+            </p>
+          </FadeIn>
         </div>
 
-        {/* Right Column: Live Wishing Board / Buku Tamu (lg:col-span-7) */}
-        <div className="lg:col-span-7 flex flex-col">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
-          {/* Stats bar */}
+          {/* Left Column: RSVP Form (lg:col-span-5) */}
+          <FadeIn direction="up" delay={150} className="lg:col-span-5 h-fit">
+            <div className="bg-white/95 dark:bg-[#1A221F] rounded-3xl p-6 sm:p-8 border border-[#C5A059]/30 hover:border-[#C5A059] shadow-xs hover:shadow-xl transition-all duration-500 h-fit relative sheen-effect">
+              {/* Subtle songket corner */}
+              <div className="absolute top-3 left-3">
+                <SongketCorner className="w-4 h-4" color="#C5A059" />
+              </div>
+              <div className="absolute top-3 right-3 rotate-90">
+                <SongketCorner className="w-4 h-4" color="#C5A059" />
+              </div>
+
+              <h3 className="font-serif-luxury text-2xl font-semibold text-[#25201C] dark:text-[#FAF7F2] mb-1">
+                Formulir RSVP
+              </h3>
+              <p className="text-xs text-[#8C7A6B] dark:text-[#A89E94] mb-6">
+                Mohon isi formulir berikut sebelum hari pelaksanaan acara.
+              </p>
+
+              {submitSuccess && (
+                <div className="mb-6 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <span>Terima kasih banyak! Konfirmasi dan doa restu Anda telah berhasil tersimpan.</span>
+                </div>
+              )}
+
+              {errorMessage && (
+                <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-xs text-red-800 dark:text-red-200 flex items-center gap-3">
+                  <XCircle className="w-5 h-5 text-red-600 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Guest Name */}
+                <div>
+                  <label className="block text-xs font-medium text-[#4A3F36] dark:text-[#D1C3B3] mb-1.5">
+                    Nama Lengkap <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.guestName}
+                    onChange={(e) => setFormData({ ...formData, guestName: e.target.value })}
+                    placeholder="Contoh: dr. Bambang Hermanto & Keluarga"
+                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] focus:outline-hidden focus:ring-2 focus:ring-[#B89047]/50"
+                  />
+                </div>
+
+                {/* Attendance Choice */}
+                <div>
+                  <label className="block text-xs font-medium text-[#4A3F36] dark:text-[#D1C3B3] mb-2">
+                    Konfirmasi Kehadiran <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'hadir', label: 'Pasti Hadir', icon: CheckCircle2 },
+                      { id: 'tidak_hadir', label: 'Berhalangan', icon: XCircle },
+                      { id: 'ragu', label: 'Masih Ragu', icon: HelpCircle },
+                    ].map((opt) => {
+                      const Icon = opt.icon;
+                      const isSelected = formData.attendance === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              attendance: opt.id as 'hadir' | 'tidak_hadir' | 'ragu',
+                            })
+                          }
+                          className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-[#B89047] bg-[#B89047]/10 text-[#B89047] dark:text-[#E6CA65] shadow-xs'
+                              : 'border-[#E2D5C3] dark:border-[#2C3833] text-[#736458] dark:text-[#A79D93] hover:border-[#B89047]/40'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 mb-1" />
+                          <span className="text-[11px] text-center leading-tight">{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Guest Count (if attending) */}
+                {formData.attendance !== 'tidak_hadir' && (
+                  <div>
+                    <label className="block text-xs font-medium text-[#4A3F36] dark:text-[#D1C3B3] mb-1.5">
+                      Jumlah Orang yang Akan Hadir
+                    </label>
+                    <select
+                      value={formData.guestCount}
+                      onChange={(e) => setFormData({ ...formData, guestCount: Number(e.target.value) })}
+                      className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] focus:outline-hidden focus:ring-2 focus:ring-[#B89047]/50"
+                    >
+                      <option value={1}>1 Orang</option>
+                      <option value={2}>2 Orang</option>
+                      <option value={3}>3 Orang</option>
+                      <option value={4}>4 Orang</option>
+                      <option value={5}>5 Orang</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Message / Wishes */}
+                <div>
+                  <label className="block text-xs font-medium text-[#4A3F36] dark:text-[#D1C3B3] mb-1.5">
+                    Ucapan Doa &amp; Harapan <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="Tuliskan ucapan dan doa terbaik untuk kedua mempelai..."
+                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-[#D9CEBF] dark:border-[#2F3D36] bg-[#FAF7F2] dark:bg-[#141A17] text-[#25201C] dark:text-[#FAF7F2] focus:outline-hidden focus:ring-2 focus:ring-[#B89047]/50"
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 px-6 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#851C28] to-[#6A141F] hover:from-[#9B2230] hover:to-[#7A1724] rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Mengirimkan...' : 'Kirim Konfirmasi & Doa'}</span>
+                </button>
+              </form>
+            </div>
+          </FadeIn>
+
+          {/* Right Column: Live Wishing Board / Buku Tamu (lg:col-span-7) */}
+          <FadeIn direction="up" delay={250} className="lg:col-span-7 flex flex-col">
+            {/* Stats bar */}
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-[#FAF7F2] dark:bg-[#1A221F] p-3.5 rounded-xl border border-[#E8DFD3] dark:border-[#2C3833] text-center">
               <span className="block text-lg sm:text-2xl font-serif-luxury font-bold text-[#25201C] dark:text-[#FAF7F2] tabular-nums">
@@ -392,8 +410,9 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({
                 </button>
               </div>
             </div>
-
           </div>
+
+          </FadeIn>
 
         </div>
 

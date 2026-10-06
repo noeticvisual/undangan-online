@@ -1,0 +1,899 @@
+[
+  {
+    "id": "proj-rizky-sarah",
+    "slug": "rizky-sarah",
+    "title": "Pernikahan Rizky & Sarah",
+    "templateId": "islamic-emerald",
+    "createdAt": "2026-03-01T09:00:00.000Z",
+    "updatedAt": "2026-10-03T09:43:50.102Z",
+    "guests": [
+      {
+        "id": "rs-g1",
+        "name": "Ustadz Ahmad Fauzi & Keluarga",
+        "category": "VIP",
+        "phone": "081398760001",
+        "createdAt": "2026-03-05T10:00:00.000Z"
+      },
+      {
+        "id": "rs-g2",
+        "name": "dr. Fathia Zahra",
+        "category": "Sahabat",
+        "phone": "081398760002",
+        "createdAt": "2026-03-05T10:05:00.000Z"
+      }
+    ],
+    "rsvps": [
+      {
+        "id": "rs-r1",
+        "guestName": "Ustadz Ahmad Fauzi & Keluarga",
+        "attendance": "hadir",
+        "guestCount": 2,
+        "message": "Barakallahu laka wa baraka alaika wa jamaa bainakuma fii khoir. Semoga sakinah mawaddah warahmah.",
+        "createdAt": "2026-03-10T11:00:00.000Z"
+      }
+    ],
+    "config": {
+      "heroImageUrl": "/src/assets/images/wedding_venue_ambiance_1790611045766.jpg",
+      "groom": {
+        "fullName": "Muhammad Rizky Fadilah, Lc., M.Ag.",
+        "nickName": "Rizky",
+        "photoUrl": "/src/assets/images/groom_portrait_1790611004426.jpg",
+        "fatherName": "K.H. Dr. Abdullah Syukri",
+        "motherName": "Nyai Hj. Nurul Hidayati",
+        "childOrder": "Putra Kedua dari",
+        "instagramHandle": "rizkyfadilah.id",
+        "bio": "Pendidik yang senantiasa bersyukur, memandang pernikahan sebagai ladang ibadah seumur hidup."
+      },
+      "bride": {
+        "fullName": "Sarah Aisyah Humaira, S.Farm., Apt.",
+        "nickName": "Sarah",
+        "photoUrl": "/src/assets/images/bride_portrait_1790611016646.jpg",
+        "fatherName": "Bpk. H. Lukman Hakim, S.T.",
+        "motherName": "Ibu Hj. Halimah Munawaroh",
+        "childOrder": "Putri Pertama dari",
+        "instagramHandle": "sarah.humaira",
+        "bio": "Apoteker yang gemar membaca dan menyukai keindahan alam dan ketulusan berbagi."
+      },
+      "eventDateISO": "2026-12-05T08:00:00+07:00",
+      "quote": {
+        "text": "Dan nikahkanlah orang-orang yang masih membujang di antara kamu, dan orang-orang yang layak (bernikah) dari hamba-hamba sahayamu yang lelaki dan hamba-hamba sahayamu yang perempuan. Jika mereka miskin, Allah akan memampukan mereka dengan karunia-Nya.",
+        "source": "QS. An-Nur: 32"
+      },
+      "events": [
+        {
+          "id": "akad",
+          "title": "Akad Nikah Khidmat",
+          "subtitle": "Prosesi Ijab Kabul & Khutbah Nikah",
+          "date": "2026-12-05",
+          "dateFormatted": "Sabtu, 5 Desember 2026",
+          "startTime": "08:00",
+          "endTime": "10:00",
+          "timezone": "WIB",
+          "venueName": "Masjid Agung Sunda Kelapa - Ruang Utama",
+          "venueAddress": "Jl. Taman Sunda Kelapa No.16, Menteng, Jakarta Pusat",
+          "mapsEmbedUrl": "https://maps.google.com/maps?q=Masjid%20Agung%20Sunda%20Kelapa%20-%20Ruang%20Utama%2C%20Jl.%20Taman%20Sunda%20Kelapa%20No.16%2C%20Menteng%2C%20Jakarta%20Pusat&t=&z=15&ie=UTF8&iwloc=&output=embed",
+          "mapsDirectUrl": "https://maps.google.com/?q=Masjid+Agung+Sunda+Kelapa",
+          "dressCode": "Baju Muslim / Batik Formal (Sopan & Rapi)"
+        },
+        {
+          "id": "resepsi",
+          "title": "Walimatul Ursy (Resepsi Pernikahan)",
+          "subtitle": "Syukuran & Jamuan Doa Bersama Para Tamu",
+          "date": "2026-12-05",
+          "dateFormatted": "Sabtu, 5 Desember 2026",
+          "startTime": "11:00",
+          "endTime": "14:00",
+          "timezone": "WIB",
+          "venueName": "Grand Ballroom Menara Bidakara",
+          "venueAddress": "Jl. Gatot Subroto Kav. 71-73, Pancoran, Jakarta Selatan",
+          "mapsEmbedUrl": "https://maps.google.com/maps?q=Grand%20Ballroom%20Menara%20Bidakara%2C%20Jl.%20Gatot%20Subroto%20Kav.%2071-73%2C%20Pancoran%2C%20Jakarta%20Selatan&t=&z=15&ie=UTF8&iwloc=&output=embed",
+          "mapsDirectUrl": "https://maps.google.com/?q=Menara+Bidakara+Jakarta",
+          "dressCode": "Busana Muslimah / Batik Nasional Formal"
+        }
+      ],
+      "loveStory": [
+        {
+          "id": "1",
+          "year": "September 2020",
+          "title": "Awal Pertemuan yang Tak Disengaja",
+          "description": "Pertama kali bertegur sapa dalam proyek kolaborasi arsitektur dan interior di Jakarta. Diskusi tentang warna dan ruang perlahan menumbuhkan kecocokan rasa."
+        },
+        {
+          "id": "2",
+          "year": "Agustus 2022",
+          "title": "Menjalin Komitmen Bersama",
+          "description": "Setelah dua tahun saling mengenal kebaikan serta kekurangan masing-masing, kami sepakat untuk berjalan bersama dalam satu tujuan hidup yang sama."
+        },
+        {
+          "id": "3",
+          "year": "Desember 2025",
+          "title": "Momen Lamaran Sakral",
+          "description": "Dikelilingi deburan ombak dan keluarga terdekat di Bandung, Arya melamar Maya. Jawaban hangat mengawali langkah baru menuju pelaminan."
+        },
+        {
+          "id": "4",
+          "year": "Oktober 2026",
+          "title": "Menuju Ikatan Abadi",
+          "description": "Dengan izin Tuhan Yang Maha Esa dan restu orang tua tercinta, kami mengikrarkan janji suci pernikahan untuk saling menyayangi selamanya."
+        }
+      ],
+      "bankAccounts": [
+        {
+          "id": "bca",
+          "bankName": "Bank BCA",
+          "accountNumber": "8410294821",
+          "accountHolder": "Raden Arya Pratama",
+          "bankLogoColor": "#0060AF"
+        },
+        {
+          "id": "mandiri",
+          "bankName": "Bank Mandiri",
+          "accountNumber": "1370019284729",
+          "accountHolder": "Maya Faradiba Putri",
+          "bankLogoColor": "#003366"
+        }
+      ],
+      "physicalGift": {
+        "recipientName": "Raden Arya & Maya Faradiba",
+        "phoneNumber": "+62 812-8901-2345",
+        "fullAddress": "Jl. Kemang Timur No. 18B, Bangka, Mampang Prapatan",
+        "postalCode": "12730",
+        "city": "Jakarta Selatan, DKI Jakarta",
+        "notes": "Mohon sertakan nama pengirim pada label paket."
+      },
+      "gallery": [
+        {
+          "id": "g1",
+          "url": "/src/assets/images/hero_wedding_couple_1790610979338.jpg",
+          "caption": "Langkah pertama menuju lembaran baru bersama.",
+          "category": "prewedding"
+        },
+        {
+          "id": "g2",
+          "url": "/src/assets/images/gallery_wedding_moments_1790611031670.jpg",
+          "caption": "Tawa dan kehangatan di tengah taman botani rindang.",
+          "category": "prewedding"
+        },
+        {
+          "id": "g3",
+          "url": "/src/assets/images/wedding_venue_ambiance_1790611045766.jpg",
+          "caption": "Ruang penuh cinta tempat ikrar suci akan diabadikan.",
+          "category": "venue"
+        },
+        {
+          "id": "g4",
+          "url": "/src/assets/images/bride_portrait_1790611016646.jpg",
+          "caption": "Senyuman penuh ketulusan sang calon mempelai wanita.",
+          "category": "ceremony"
+        },
+        {
+          "id": "g5",
+          "url": "/src/assets/images/groom_portrait_1790611004426.jpg",
+          "caption": "Tekad tulus sang calon mempelai pria untuk masa depan.",
+          "category": "ceremony"
+        }
+      ],
+      "musicTitle": "Shalawat & String Acoustic Serenade",
+      "musicArtist": "Sacred Harmony Strings",
+      "clientPasscode": "rizkysarah2026",
+      "colorTheme": "emerald",
+      "organizerContacts": [
+        {
+          "role": "Wedding Organizer (Niskala Planner)",
+          "name": "Dimas Wicaksono",
+          "phone": "+62 811-2345-6789"
+        },
+        {
+          "role": "Perwakilan Keluarga Pria",
+          "name": "Bpk. Irfan Prasetyo",
+          "phone": "+62 812-3456-7890"
+        },
+        {
+          "role": "Perwakilan Keluarga Wanita",
+          "name": "Bpk. Rahmat Hidayat",
+          "phone": "+62 813-9876-5432"
+        }
+      ],
+      "templateId": "islamic-emerald",
+      "selectedTrackId": "canon-strings",
+      "galleryRatio": "4:5",
+      "galleryAnimationEnabled": true,
+      "openingCoverPhotoUrl": "/src/assets/images/wedding_venue_ambiance_1790611045766.jpg",
+      "openingCoverRatio": "arched",
+      "openingCoverScale": 100,
+      "couplePhotoRatio": "arched",
+      "couplePhotoScale": 100,
+      "galleryPhotoSize": "medium"
+    }
+  },
+  {
+    "id": "proj-dimas-anita",
+    "slug": "dimas-anita",
+    "title": "Pernikahan Dimas & Anita",
+    "templateId": "modern-minimalist",
+    "createdAt": "2026-02-10T08:30:00.000Z",
+    "updatedAt": "2026-10-03T09:43:50.100Z",
+    "guests": [
+      {
+        "id": "da-g1",
+        "name": "dr. Hendra Kusuma & Partner",
+        "category": "VIP",
+        "phone": "081234567801",
+        "createdAt": "2026-02-15T09:00:00.000Z"
+      },
+      {
+        "id": "da-g2",
+        "name": "Nadya Amanda, S.Kom.",
+        "category": "Sahabat",
+        "phone": "081234567802",
+        "createdAt": "2026-02-15T09:05:00.000Z"
+      },
+      {
+        "id": "da-g3",
+        "name": "Keluarga Bpk. Santoso",
+        "category": "Keluarga",
+        "phone": "081234567803",
+        "createdAt": "2026-02-15T09:10:00.000Z"
+      }
+    ],
+    "rsvps": [
+      {
+        "id": "da-r1",
+        "guestName": "dr. Hendra Kusuma & Partner",
+        "attendance": "hadir",
+        "guestCount": 2,
+        "message": "Selamat untuk Dimas dan Anita! Semoga selalu harmonis dan berbahagia selamanya.",
+        "createdAt": "2026-02-20T10:15:00.000Z"
+      },
+      {
+        "id": "da-r2",
+        "guestName": "Nadya Amanda, S.Kom.",
+        "attendance": "hadir",
+        "guestCount": 1,
+        "message": "Happy wedding Dimas & Anita! Cant wait to see you both on the big day!",
+        "createdAt": "2026-02-21T14:20:00.000Z"
+      }
+    ],
+    "config": {
+      "heroImageUrl": "/src/assets/images/hero_wedding_couple_1790610979338.jpg",
+      "groom": {
+        "fullName": "Dimas Aditya Pratama, S.Kom.",
+        "nickName": "Dimas",
+        "photoUrl": "/src/assets/images/groom_portrait_1790611004426.jpg",
+        "fatherName": "Bpk. Ir. Gunawan Wicaksono",
+        "motherName": "Ibu Dra. Endang Suryani",
+        "childOrder": "Putra Pertama dari",
+        "instagramHandle": "dimas.aditya",
+        "bio": "Tech enthusiast dan desainer visual yang percaya cinta adalah kolaborasi terindah."
+      },
+      "bride": {
+        "fullName": "Anita Larasati, S.M.",
+        "nickName": "Anita",
+        "photoUrl": "/src/assets/images/bride_portrait_1790611016646.jpg",
+        "fatherName": "Bpk. H. Bambang Priyanto",
+        "motherName": "Ibu Hj. Sri Rahayu",
+        "childOrder": "Putri Bungsu dari",
+        "instagramHandle": "anitalarasati",
+        "bio": "Penyuka seni minimalis dan literatur, menemukan rumah teduhnya dalam diri Dimas."
+      },
+      "eventDateISO": "2026-11-14T09:00:00+07:00",
+      "quote": {
+        "text": "Two souls with but a single thought, two hearts that beat as one. In true love, the smallest distance is too great, and the greatest distance can be bridged.",
+        "source": "Kahlil Gibran"
+      },
+      "events": [
+        {
+          "id": "akad",
+          "title": "Holy Matrimony & Ijab Kabul",
+          "subtitle": "Prosesi Janji Suci & Doa Restu",
+          "date": "2026-11-14",
+          "dateFormatted": "Sabtu, 14 November 2026",
+          "startTime": "09:00",
+          "endTime": "11:00",
+          "timezone": "WIB",
+          "venueName": "The Glass Pavilion SCBD",
+          "venueAddress": "Kawasan Sudirman Central Business District Lot 8, Jakarta Selatan",
+          "mapsEmbedUrl": "https://maps.google.com/maps?q=The%20Glass%20Pavilion%20SCBD%2C%20Kawasan%20Sudirman%20Central%20Business%20District%20Lot%208%2C%20Jakarta%20Selatan&t=&z=15&ie=UTF8&iwloc=&output=embed",
+          "mapsDirectUrl": "https://maps.google.com/?q=SCBD+Jakarta",
+          "dressCode": "Modern Monochromatic / Earth Tones (Bebas Rapi)"
+        },
+        {
+          "id": "resepsi",
+          "title": "Evening Celebration & Cocktail Dinner",
+          "subtitle": "Makan Malam Hangat Bersama Kolega & Sahabat",
+          "date": "2026-11-14",
+          "dateFormatted": "Sabtu, 14 November 2026",
+          "startTime": "18:30",
+          "endTime": "21:30",
+          "timezone": "WIB",
+          "venueName": "The Glass Pavilion SCBD - Rooftop Ballroom",
+          "venueAddress": "Kawasan Sudirman Central Business District Lot 8, Jakarta Selatan",
+          "mapsEmbedUrl": "https://maps.google.com/maps?q=The%20Glass%20Pavilion%20SCBD%20-%20Rooftop%20Ballroom%2C%20Kawasan%20Sudirman%20Central%20Business%20District%20Lot%208%2C%20Jakarta%20Selatan&t=&z=15&ie=UTF8&iwloc=&output=embed",
+          "mapsDirectUrl": "https://maps.google.com/?q=SCBD+Jakarta",
+          "dressCode": "Cocktail Dress & Modern Suit / Batik Formal"
+        }
+      ],
+      "loveStory": [
+        {
+          "id": "1",
+          "year": "September 2020",
+          "title": "Awal Pertemuan yang Tak Disengaja",
+          "description": "Pertama kali bertegur sapa dalam proyek kolaborasi arsitektur dan interior di Jakarta. Diskusi tentang warna dan ruang perlahan menumbuhkan kecocokan rasa."
+        },
+        {
+          "id": "2",
+          "year": "Agustus 2022",
+          "title": "Menjalin Komitmen Bersama",
+          "description": "Setelah dua tahun saling mengenal kebaikan serta kekurangan masing-masing, kami sepakat untuk berjalan bersama dalam satu tujuan hidup yang sama."
+        },
+        {
+          "id": "3",
+          "year": "Desember 2025",
+          "title": "Momen Lamaran Sakral",
+          "description": "Dikelilingi deburan ombak dan keluarga terdekat di Bandung, Arya melamar Maya. Jawaban hangat mengawali langkah baru menuju pelaminan."
+        },
+        {
+          "id": "4",
+          "year": "Oktober 2026",
+          "title": "Menuju Ikatan Abadi",
+          "description": "Dengan izin Tuhan Yang Maha Esa dan restu orang tua tercinta, kami mengikrarkan janji suci pernikahan untuk saling menyayangi selamanya."
+        }
+      ],
+      "bankAccounts": [
+        {
+          "id": "bca",
+          "bankName": "Bank BCA",
+          "accountNumber": "8410294821",
+          "accountHolder": "Raden Arya Pratama",
+          "bankLogoColor": "#0060AF"
+        },
+        {
+          "id": "mandiri",
+          "bankName": "Bank Mandiri",
+          "accountNumber": "1370019284729",
+          "accountHolder": "Maya Faradiba Putri",
+          "bankLogoColor": "#003366"
+        }
+      ],
+      "physicalGift": {
+        "recipientName": "Raden Arya & Maya Faradiba",
+        "phoneNumber": "+62 812-8901-2345",
+        "fullAddress": "Jl. Kemang Timur No. 18B, Bangka, Mampang Prapatan",
+        "postalCode": "12730",
+        "city": "Jakarta Selatan, DKI Jakarta",
+        "notes": "Mohon sertakan nama pengirim pada label paket."
+      },
+      "gallery": [
+        {
+          "id": "g1",
+          "url": "/src/assets/images/hero_wedding_couple_1790610979338.jpg",
+          "caption": "Langkah pertama menuju lembaran baru bersama.",
+          "category": "prewedding"
+        },
+        {
+          "id": "g2",
+          "url": "/src/assets/images/gallery_wedding_moments_1790611031670.jpg",
+          "caption": "Tawa dan kehangatan di tengah taman botani rindang.",
+          "category": "prewedding"
+        },
+        {
+          "id": "g3",
+          "url": "/src/assets/images/wedding_venue_ambiance_1790611045766.jpg",
+          "caption": "Ruang penuh cinta tempat ikrar suci akan diabadikan.",
+          "category": "venue"
+        },
+        {
+          "id": "g4",
+          "url": "/src/assets/images/bride_portrait_1790611016646.jpg",
+          "caption": "Senyuman penuh ketulusan sang calon mempelai wanita.",
+          "category": "ceremony"
+        },
+        {
+          "id": "g5",
+          "url": "/src/assets/images/groom_portrait_1790611004426.jpg",
+          "caption": "Tekad tulus sang calon mempelai pria untuk masa depan.",
+          "category": "ceremony"
+        }
+      ],
+      "musicTitle": "Gymnopédie No. 1 - Piano Minimalist",
+      "musicArtist": "Erik Satie (Contemporary Piano Solo)",
+      "clientPasscode": "dimasanita2026",
+      "colorTheme": "slate",
+      "organizerContacts": [
+        {
+          "role": "Wedding Organizer (Niskala Planner)",
+          "name": "Dimas Wicaksono",
+          "phone": "+62 811-2345-6789"
+        },
+        {
+          "role": "Perwakilan Keluarga Pria",
+          "name": "Bpk. Irfan Prasetyo",
+          "phone": "+62 812-3456-7890"
+        },
+        {
+          "role": "Perwakilan Keluarga Wanita",
+          "name": "Bpk. Rahmat Hidayat",
+          "phone": "+62 813-9876-5432"
+        }
+      ],
+      "templateId": "modern-minimalist",
+      "selectedTrackId": "piano-minimal",
+      "openingCoverPhotoUrl": "/src/assets/images/hero_wedding_couple_1790610979338.jpg",
+      "openingCoverRatio": "arched",
+      "openingCoverScale": 100,
+      "couplePhotoRatio": "arched",
+      "couplePhotoScale": 100,
+      "galleryRatio": "4:5",
+      "galleryPhotoSize": "medium",
+      "galleryAnimationEnabled": true
+    }
+  },
+  {
+    "id": "proj-maya-arya",
+    "slug": "maya-arya",
+    "title": "Pernikahan Maya & Arya",
+    "templateId": "javanese-royal",
+    "createdAt": "2026-01-15T10:00:00.000Z",
+    "updatedAt": "2026-10-03T09:43:50.104Z",
+    "guests": [
+      {
+        "id": "guest-1",
+        "name": "dr. Anisa & Keluarga",
+        "phone": "081234567890",
+        "category": "Sahabat",
+        "notes": "Meja VIP A",
+        "createdAt": "2026-09-20T10:00:00Z"
+      },
+      {
+        "id": "guest-2",
+        "name": "Ferry Pratama (Alumni ITB)",
+        "phone": "081398765432",
+        "category": "Sahabat",
+        "notes": "Teman Kuliah Arya",
+        "createdAt": "2026-09-20T11:00:00Z"
+      },
+      {
+        "id": "guest-3",
+        "name": "Rina Kusuma & Rekan Desain",
+        "phone": "085712345678",
+        "category": "Rekan Kerja",
+        "notes": "Rekan Kantor Maya",
+        "createdAt": "2026-09-20T12:00:00Z"
+      },
+      {
+        "id": "guest-4",
+        "name": "Bpk. Irfan Prasetyo & Istri",
+        "phone": "081122334455",
+        "category": "Keluarga",
+        "notes": "Keluarga Pria",
+        "createdAt": "2026-09-20T13:00:00Z"
+      },
+      {
+        "id": "guest-5",
+        "name": "Bambang Soediro (Kerabat Surabaya)",
+        "phone": "081987654321",
+        "category": "Keluarga",
+        "notes": "Kerabat Surabaya",
+        "createdAt": "2026-09-20T14:00:00Z"
+      }
+    ],
+    "rsvps": [
+      {
+        "id": "rsvp-1",
+        "guestName": "dr. Anisa & Keluarga",
+        "attendance": "hadir",
+        "guestCount": 2,
+        "message": "Selamat berbahagia untuk Arya dan Maya! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah. Lancar sampai hari H yaa!",
+        "createdAt": "2026-09-27T10:15:00Z"
+      },
+      {
+        "id": "rsvp-2",
+        "guestName": "Ferry Pratama (Alumni ITB)",
+        "attendance": "hadir",
+        "guestCount": 1,
+        "message": "Selamat menempuh hidup baru sahabatku Arya! Turut berbahagia untuk kalian berdua.",
+        "createdAt": "2026-09-26T14:40:00Z"
+      },
+      {
+        "id": "rsvp-3",
+        "guestName": "Rina Kusuma & Rekan Desain",
+        "attendance": "hadir",
+        "guestCount": 3,
+        "message": "Happy wedding Maya cantik & Mas Arya! Semoga pernikahannya diberkahi kebahagiaan dan rezeki yang melimpah selalu.",
+        "createdAt": "2026-09-25T09:20:00Z"
+      },
+      {
+        "id": "rsvp-4",
+        "guestName": "Bambang Soediro (Kerabat Surabaya)",
+        "attendance": "tidak_hadir",
+        "guestCount": 0,
+        "message": "Mohon maaf belum bisa hadir langsung karena dinas luar kota, namun doa restu kami sekeluarga selalu menyertai kedua mempelai.",
+        "createdAt": "2026-09-24T18:05:00Z"
+      }
+    ],
+    "config": {
+      "heroImageUrl": "/src/assets/images/hero_wedding_couple_1790610979338.jpg",
+      "groom": {
+        "fullName": "Raden Arya Pratama, S.T.",
+        "nickName": "Arya",
+        "photoUrl": "/src/assets/images/groom_portrait_1790611004426.jpg",
+        "fatherName": "Bpk. Ir. Bambang Hermanto",
+        "motherName": "Ibu Hj. Siti Nurhasanah",
+        "childOrder": "Putra Pertama dari",
+        "instagramHandle": "aryapratama.id",
+        "bio": "Pribadi yang tenang, arsitek pecinta kopi dan fotografi alam."
+      },
+      "bride": {
+        "fullName": "Maya Faradiba Putri, S.Ds.",
+        "nickName": "Maya",
+        "photoUrl": "/src/assets/images/bride_portrait_1790611016646.jpg",
+        "fatherName": "Bpk. H. Tri Nugroho, S.E.",
+        "motherName": "Ibu Ratna Dewi Wardani",
+        "childOrder": "Putri Kedua dari",
+        "instagramHandle": "mayafaradiba",
+        "bio": "Desainer interior ceria yang percaya kehangatan dimulai dari ketulusan hati."
+      },
+      "eventDateISO": "2026-10-24T08:00:00+07:00",
+      "quote": {
+        "text": "Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang.",
+        "source": "QS. Ar-Rum: 21"
+      },
+      "events": [
+        {
+          "id": "akad",
+          "title": "Akad Nikah",
+          "subtitle": "Prosesi Ijab Kabul & Penyerahan Mahar",
+          "date": "2026-10-24",
+          "dateFormatted": "Sabtu, 24 Oktober 2026",
+          "startTime": "08:00",
+          "endTime": "10:00",
+          "timezone": "WIB",
+          "venueName": "The Botanical Glasshouse - Plataran Menteng",
+          "venueAddress": "Jl. H.O.S. Cokroaminoto No.42, Menteng, Kec. Menteng, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10350",
+          "mapsEmbedUrl": "https://maps.google.com/maps?q=The%20Botanical%20Glasshouse%20-%20Plataran%20Menteng%2C%20Jl.%20H.O.S.%20Cokroaminoto%20No.42%2C%20Menteng%2C%20Kec.%20Menteng%2C%20Kota%20Jakarta%20Pusat%2C%20Daerah%20Khusus%20Ibukota%20Jakarta%2010350&t=&z=15&ie=UTF8&iwloc=&output=embed",
+          "mapsDirectUrl": "https://maps.google.com/?q=Plataran+Menteng+Jakarta",
+          "dressCode": "Batik / Formal Attire bernuansa Bumi (Earth Tone)",
+          "notes": "Khusus keluarga inti dan kerabat terdekat demi kekhidmatan doa."
+        },
+        {
+          "id": "resepsi",
+          "title": "Resepsi Pernikahan",
+          "subtitle": "Perayaan Syukuran & Ramah Tamah Bersama",
+          "date": "2026-10-24",
+          "dateFormatted": "Sabtu, 24 Oktober 2026",
+          "startTime": "11:00",
+          "endTime": "14:30",
+          "timezone": "WIB",
+          "venueName": "Grand Ballroom & Garden Paviliun - Plataran Menteng",
+          "venueAddress": "Jl. H.O.S. Cokroaminoto No.42, Menteng, Kec. Menteng, Kota Jakarta Pusat, 10350",
+          "mapsEmbedUrl": "https://maps.google.com/maps?q=Grand%20Ballroom%20%26%20Garden%20Paviliun%20-%20Plataran%20Menteng%2C%20Jl.%20H.O.S.%20Cokroaminoto%20No.42%2C%20Menteng%2C%20Kec.%20Menteng%2C%20Kota%20Jakarta%20Pusat%2C%2010350&t=&z=15&ie=UTF8&iwloc=&output=embed",
+          "mapsDirectUrl": "https://maps.google.com/?q=Plataran+Menteng+Jakarta",
+          "dressCode": "Pakaian Formal / Gaun / Batik Eksklusif",
+          "notes": "Kehadiran Anda merupakan kehormatan dan kebahagiaan terbesar bagi kami."
+        }
+      ],
+      "loveStory": [
+        {
+          "id": "1",
+          "year": "September 2020",
+          "title": "Awal Pertemuan yang Tak Disengaja",
+          "description": "Pertama kali bertegur sapa dalam proyek kolaborasi arsitektur dan interior di Jakarta. Diskusi tentang warna dan ruang perlahan menumbuhkan kecocokan rasa."
+        },
+        {
+          "id": "2",
+          "year": "Agustus 2022",
+          "title": "Menjalin Komitmen Bersama",
+          "description": "Setelah dua tahun saling mengenal kebaikan serta kekurangan masing-masing, kami sepakat untuk berjalan bersama dalam satu tujuan hidup yang sama."
+        },
+        {
+          "id": "3",
+          "year": "Desember 2025",
+          "title": "Momen Lamaran Sakral",
+          "description": "Dikelilingi deburan ombak dan keluarga terdekat di Bandung, Arya melamar Maya. Jawaban hangat mengawali langkah baru menuju pelaminan."
+        },
+        {
+          "id": "4",
+          "year": "Oktober 2026",
+          "title": "Menuju Ikatan Abadi",
+          "description": "Dengan izin Tuhan Yang Maha Esa dan restu orang tua tercinta, kami mengikrarkan janji suci pernikahan untuk saling menyayangi selamanya."
+        }
+      ],
+      "bankAccounts": [
+        {
+          "id": "bca",
+          "bankName": "Bank BCA",
+          "accountNumber": "8410294821",
+          "accountHolder": "Raden Arya Pratama",
+          "bankLogoColor": "#0060AF"
+        },
+        {
+          "id": "mandiri",
+          "bankName": "Bank Mandiri",
+          "accountNumber": "1370019284729",
+          "accountHolder": "Maya Faradiba Putri",
+          "bankLogoColor": "#003366"
+        }
+      ],
+      "physicalGift": {
+        "recipientName": "Raden Arya & Maya Faradiba",
+        "phoneNumber": "+62 812-8901-2345",
+        "fullAddress": "Jl. Kemang Timur No. 18B, Bangka, Mampang Prapatan",
+        "postalCode": "12730",
+        "city": "Jakarta Selatan, DKI Jakarta",
+        "notes": "Mohon sertakan nama pengirim pada label paket."
+      },
+      "gallery": [
+        {
+          "id": "g1",
+          "url": "/src/assets/images/hero_wedding_couple_1790610979338.jpg",
+          "caption": "Langkah pertama menuju lembaran baru bersama.",
+          "category": "prewedding"
+        },
+        {
+          "id": "g2",
+          "url": "/src/assets/images/gallery_wedding_moments_1790611031670.jpg",
+          "caption": "Tawa dan kehangatan di tengah taman botani rindang.",
+          "category": "prewedding"
+        },
+        {
+          "id": "g3",
+          "url": "/src/assets/images/wedding_venue_ambiance_1790611045766.jpg",
+          "caption": "Ruang penuh cinta tempat ikrar suci akan diabadikan.",
+          "category": "venue"
+        },
+        {
+          "id": "g4",
+          "url": "/src/assets/images/bride_portrait_1790611016646.jpg",
+          "caption": "Senyuman penuh ketulusan sang calon mempelai wanita.",
+          "category": "ceremony"
+        },
+        {
+          "id": "g5",
+          "url": "/src/assets/images/groom_portrait_1790611004426.jpg",
+          "caption": "Tekad tulus sang calon mempelai pria untuk masa depan.",
+          "category": "ceremony"
+        }
+      ],
+      "musicTitle": "Canon in D - Romantic Acoustic",
+      "musicArtist": "Johann Pachelbel (Acoustic Strings)",
+      "clientPasscode": "mayaarya2026",
+      "colorTheme": "gold",
+      "organizerContacts": [
+        {
+          "role": "Wedding Organizer (Niskala Planner)",
+          "name": "Dimas Wicaksono",
+          "phone": "+62 811-2345-6789"
+        },
+        {
+          "role": "Perwakilan Keluarga Pria",
+          "name": "Bpk. Irfan Prasetyo",
+          "phone": "+62 812-3456-7890"
+        },
+        {
+          "role": "Perwakilan Keluarga Wanita",
+          "name": "Bpk. Rahmat Hidayat",
+          "phone": "+62 813-9876-5432"
+        }
+      ],
+      "templateId": "javanese-royal",
+      "openingCoverPhotoUrl": "/src/assets/images/hero_wedding_couple_1790610979338.jpg",
+      "openingCoverRatio": "arched",
+      "openingCoverScale": 100,
+      "couplePhotoRatio": "arched",
+      "couplePhotoScale": 100,
+      "galleryRatio": "4:5",
+      "galleryPhotoSize": "medium",
+      "galleryAnimationEnabled": true
+    }
+  },
+  {
+    "id": "proj-benny-indah",
+    "slug": "benny-indah",
+    "title": "The Wedding of Benny & Indah",
+    "templateId": "minang-royal",
+    "createdAt": "2026-03-01T08:00:00.000Z",
+    "updatedAt": "2026-10-03T09:43:50.127Z",
+    "guests": [
+      {
+        "id": "bi-g1",
+        "name": "Yogi dan Ratna",
+        "category": "Sahabat",
+        "phone": "081289001122",
+        "createdAt": "2026-03-05T09:00:00.000Z"
+      },
+      {
+        "id": "bi-g2",
+        "name": "Keluarga Bpk. H. Syamsuddin",
+        "category": "Keluarga",
+        "phone": "081289001133",
+        "createdAt": "2026-03-05T09:15:00.000Z"
+      },
+      {
+        "id": "bi-g3",
+        "name": "Datuak Marajo & Rombongan Kerabat",
+        "category": "VIP",
+        "phone": "081289001144",
+        "createdAt": "2026-03-05T09:30:00.000Z"
+      }
+    ],
+    "rsvps": [
+      {
+        "id": "bi-r1",
+        "guestName": "Yogi dan Ratna",
+        "attendance": "hadir",
+        "guestCount": 2,
+        "message": "Barakallahu lakum wa baraka alaikum. Selamat untuk Benny & Indah! Rancak bana acaranyo, semoga sakinah mawaddah warahmah.",
+        "createdAt": "2026-03-10T10:00:00.000Z"
+      },
+      {
+        "id": "bi-r2",
+        "guestName": "Galeri Undangan Official",
+        "attendance": "hadir",
+        "guestCount": 1,
+        "message": "Happy wedding ya Benny dan Indah, lancar acaranya dan bahagia selalu!",
+        "createdAt": "2026-03-11T12:30:00.000Z"
+      }
+    ],
+    "config": {
+      "templateId": "minang-royal",
+      "heroImageUrl": "/src/assets/images/minang_wedding_couple_1790839408987.jpg",
+      "groom": {
+        "fullName": "Benny Erlangga, S.Pd.",
+        "nickName": "Benny",
+        "photoUrl": "/src/assets/images/minang_wedding_couple_1790839408987.jpg",
+        "fatherName": "Bpk. Nasruddin Hatta",
+        "motherName": "Ibu Elma Maria",
+        "childOrder": "Putra Pertama dari",
+        "instagramHandle": "benny.erlangga",
+        "bio": "Pribadi yang bersahaja, bertanggung jawab, dan penuh kehangatan dalam keluarga."
+      },
+      "bride": {
+        "fullName": "Indah Sukma, S.Pd.",
+        "nickName": "Indah",
+        "photoUrl": "/src/assets/images/minang_bride_suntiang_1790839423257.jpg",
+        "fatherName": "Bpk. Drs. H. Anwar Chaniago",
+        "motherName": "Ibu Hj. Syamsiar Tanjung",
+        "childOrder": "Putri Kedua dari",
+        "instagramHandle": "indah.sukma",
+        "bio": "Sosok yang santun, mencintai seni budaya tradisi dan kehangatan kebersamaan keluarga."
+      },
+      "eventDateISO": "2026-10-25T10:00:00+07:00",
+      "quote": {
+        "text": "Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang.",
+        "source": "QS. Ar-Rum: 21"
+      },
+      "events": [
+        {
+          "id": "akad",
+          "title": "Akad Nikah Khidmat",
+          "subtitle": "Prosesi Ijab Kabul & Mahar Pernikahan",
+          "date": "2026-10-25",
+          "dateFormatted": "Sabtu, 25 Oktober 2026",
+          "startTime": "10:00",
+          "endTime": "12:00",
+          "timezone": "WIB",
+          "venueName": "Kediaman Mempelai Wanita",
+          "venueAddress": "Jl. Harapan Dusun II Tanjung Morawa / Kompleks Rumah Gadang",
+          "mapsEmbedUrl": "https://maps.google.com/maps?q=Kediaman%20Mempelai%20Wanita%2C%20Jl.%20Harapan%20Dusun%20II%20Tanjung%20Morawa%20%2F%20Kompleks%20Rumah%20Gadang&t=&z=15&ie=UTF8&iwloc=&output=embed",
+          "mapsDirectUrl": "https://maps.google.com/?q=Padang+Sumatera+Barat",
+          "dressCode": "Batik Formal / Busana Tradisional Rapi"
+        },
+        {
+          "id": "resepsi",
+          "title": "Resepsi Pernikahan",
+          "subtitle": "Perayaan Syukuran & Jamuan Doa Restu Bersama Kerabat",
+          "date": "2026-10-25",
+          "dateFormatted": "Sabtu, 25 Oktober 2026",
+          "startTime": "12:00",
+          "endTime": "Selesai",
+          "timezone": "WIB",
+          "venueName": "Gedung Pertemuan Bagindo Aziz Chan",
+          "venueAddress": "Jl. Bagindo Aziz Chan No. 1, Kota Padang, Sumatera Barat",
+          "mapsEmbedUrl": "https://maps.google.com/maps?q=Gedung%20Pertemuan%20Bagindo%20Aziz%20Chan%2C%20Jl.%20Bagindo%20Aziz%20Chan%20No.%201%2C%20Kota%20Padang%2C%20Sumatera%20Barat&t=&z=15&ie=UTF8&iwloc=&output=embed",
+          "mapsDirectUrl": "https://maps.google.com/?q=Gedung+Bagindo+Aziz+Chan+Padang",
+          "dressCode": "Batik / Busana Formal Sopan"
+        }
+      ],
+      "loveStory": [
+        {
+          "id": "ls-1",
+          "year": "2020",
+          "title": "Awal Bertemu",
+          "description": "Di dunia yang luas ini, kami percaya bahwa tidak ada pertemuan yang benar-benar kebetulan. Tahun mempertemukan dua hati pada waktu yang tepat dengan cara yang sederhana tapi bermakna."
+        },
+        {
+          "id": "ls-2",
+          "year": "April 2025",
+          "title": "Lamaran & Pertunangan",
+          "description": "Atas kehendak-Nya, kami melangkah ke tahap yang lebih serius dengan melangsungkan prosesi lamaran adat. Restu tulus kedua belah keluarga mengiringi langkah suci kami."
+        },
+        {
+          "id": "ls-3",
+          "year": "Oktober 2026",
+          "title": "Hari Bahagia Pernikahan",
+          "description": "Kini saatnya kami mengikat janji suci pernikahan, melangkah bersama mengarungi bahtera rumah tangga di bawah naungan berkah dan cinta sejati."
+        }
+      ],
+      "bankAccounts": [
+        {
+          "id": "ba-1",
+          "bankName": "Bank Mandiri",
+          "accountNumber": "1210012345678",
+          "accountHolder": "Indah Sukma",
+          "bankLogoColor": "#003D79"
+        },
+        {
+          "id": "ba-2",
+          "bankName": "Bank Nagari / BSI",
+          "accountNumber": "71900889900",
+          "accountHolder": "Benny Erlangga",
+          "bankLogoColor": "#00704A"
+        }
+      ],
+      "physicalGift": {
+        "recipientName": "Benny Erlangga & Indah Sukma",
+        "phoneNumber": "0812-8900-1122",
+        "fullAddress": "Jl. Harapan Dusun II Tanjung Morawa / Jl. Khatib Sulaiman No. 45",
+        "city": "Kota Padang, Sumatera Barat",
+        "postalCode": "25135",
+        "notes": "Konfirmasi pengiriman kado fisik melalui WhatsApp keluarga."
+      },
+      "gallery": [
+        {
+          "id": "m1",
+          "url": "/src/assets/images/minang_wedding_couple_1790839408987.jpg",
+          "caption": "Busana agung pengantin Minang bertabur songket dan Suntiang emas.",
+          "category": "prewedding"
+        },
+        {
+          "id": "m2",
+          "url": "/src/assets/images/minang_bride_suntiang_1790839423257.jpg",
+          "caption": "Kecantikan anggun sang anak daro bermahkotakan Suntiang gadang.",
+          "category": "ceremony"
+        },
+        {
+          "id": "m3",
+          "url": "/src/assets/images/minang_rumah_gadang_1790839439988.jpg",
+          "caption": "Kemegahan arsitektur Rumah Gadang dengan atap gonjong yang mempesona.",
+          "category": "venue"
+        },
+        {
+          "id": "m4",
+          "url": "/src/assets/images/minang_tapestry_bg_1790839388923.jpg",
+          "caption": "Harmoni alam dan budaya luhur Ranah Minang.",
+          "category": "details"
+        }
+      ],
+      "musicTitle": "Saluang & Talempong Tradisi Minang",
+      "musicArtist": "Ansambel Tradisional Minangkabau",
+      "clientPasscode": "bennyindah2026",
+      "colorTheme": "rose",
+      "organizerContacts": [
+        {
+          "role": "Wedding Organizer (Niskala Planner)",
+          "name": "Dimas Wicaksono",
+          "phone": "+62 811-2345-6789"
+        },
+        {
+          "role": "Perwakilan Keluarga Pria",
+          "name": "Bpk. Irfan Prasetyo",
+          "phone": "+62 812-3456-7890"
+        },
+        {
+          "role": "Perwakilan Keluarga Wanita",
+          "name": "Bpk. Rahmat Hidayat",
+          "phone": "+62 813-9876-5432"
+        }
+      ],
+      "selectedTrackId": "minang_saluang_talempong",
+      "openingCoverPhotoUrl": "/src/assets/images/minang_wedding_couple_1790839408987.jpg",
+      "openingCoverRatio": "arched",
+      "openingCoverScale": 100,
+      "couplePhotoRatio": "arched",
+      "couplePhotoScale": 100,
+      "galleryRatio": "4:5",
+      "galleryPhotoSize": "medium",
+      "galleryAnimationEnabled": true
+    }
+  }
+]

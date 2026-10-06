@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Play, Pause, Volume2, Music, Check, Radio, Disc, Sparkles } from 'lucide-react';
 import { MusicTrack, WeddingConfig } from '../types/wedding';
 import { AVAILABLE_WEDDING_TRACKS, weddingMusicEngine } from '../services/audioPlayer';
+import { isGoogleDriveUrl, extractGoogleDriveFileId } from '../utils/googleDrive';
 
 interface MusicSwitcherModalProps {
   isOpen: boolean;
@@ -230,25 +231,64 @@ export const MusicSwitcherModal: React.FC<MusicSwitcherModalProps> = ({
 
                         {/* Custom URL Input Field if custom is selected */}
                         {track.id === 'custom_url' && isSelected && (
-                          <form
-                            onSubmit={handleApplyCustomUrl}
+                          <div
                             onClick={(e) => e.stopPropagation()}
-                            className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+                            className="mt-3 p-3.5 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 space-y-2.5"
                           >
-                            <input
-                              type="url"
-                              value={customUrlInput}
-                              onChange={(e) => setCustomUrlInput(e.target.value)}
-                              placeholder="Masukkan tautan langsung MP3 (https://.../lagu.mp3)"
-                              className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-[#D9CEBF] dark:border-[#35433C] bg-white dark:bg-[#161B19] text-[#2C2724] dark:text-white focus:outline-none focus:ring-1 focus:ring-[#B89047]"
-                            />
-                            <button
-                              type="submit"
-                              className="px-3.5 py-1.5 text-xs font-medium text-white bg-[#B89047] hover:bg-[#A37E38] rounded-lg transition-colors cursor-pointer shrink-0"
+                            <div className="flex items-center justify-between text-[11px] gap-2">
+                              <span className="font-semibold text-[#B89047] flex items-center gap-1.5">
+                                <span>🔗</span> Tautan Lagu Google Drive / MP3:
+                              </span>
+                              {isGoogleDriveUrl(customUrlInput) ? (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-600 text-white flex items-center gap-1 shadow-xs">
+                                  <Check className="w-3 h-3" /> Google Drive Terdeteksi
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-[#B89047]/20 text-[#B89047]">
+                                  Google Drive & MP3 Langsung
+                                </span>
+                              )}
+                            </div>
+
+                            <form
+                              onSubmit={handleApplyCustomUrl}
+                              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
                             >
-                              Terapkan
-                            </button>
-                          </form>
+                              <input
+                                type="url"
+                                value={customUrlInput}
+                                onChange={(e) => setCustomUrlInput(e.target.value)}
+                                placeholder="Tempel tautan Google Drive (https://drive.google.com/file/d/...)"
+                                className="flex-1 px-3 py-2 text-xs rounded-lg border border-[#D9CEBF] dark:border-[#35433C] bg-white dark:bg-[#161B19] text-[#2C2724] dark:text-white font-mono focus:outline-none focus:ring-1 focus:ring-[#B89047]"
+                              />
+                              <button
+                                type="submit"
+                                className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-[#B89047] to-[#A37E38] hover:from-[#A88239] hover:to-[#916E2E] rounded-lg transition-all cursor-pointer shrink-0 shadow-xs flex items-center justify-center gap-1.5"
+                              >
+                                <Play className="w-3 h-3 fill-current" />
+                                <span>Putar Lagu</span>
+                              </button>
+                            </form>
+
+                            {extractGoogleDriveFileId(customUrlInput) && (
+                              <div className="text-[11px] text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2 rounded-lg border border-emerald-200 dark:border-emerald-800/40 flex items-center justify-between">
+                                <span>File ID: <code className="font-mono font-semibold">{extractGoogleDriveFileId(customUrlInput)}</code></span>
+                                <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">Auto-convert streaming</span>
+                              </div>
+                            )}
+
+                            <div className="text-[10px] text-[#8C7A6B] dark:text-[#A89E94] space-y-1 bg-white/60 dark:bg-black/20 p-2.5 rounded-lg border border-[#E8DFD3] dark:border-[#2C3833]">
+                              <p className="font-semibold text-[#736458] dark:text-[#BFB4A8]">
+                                💡 Panduan Menambahkan Musik dari Google Drive:
+                              </p>
+                              <ol className="list-decimal list-inside space-y-0.5 pl-1 leading-relaxed">
+                                <li>Unggah file lagu (MP3/M4A) ke Google Drive Anda.</li>
+                                <li>Klik kanan file &gt; pilih <strong>Bagikan (Share)</strong>.</li>
+                                <li>Ubah Akses Umum menjadi <strong>"Siapa saja yang memiliki link" (Anyone with the link)</strong>.</li>
+                                <li>Salin tautan dan tempel pada kolom di atas &gt; Klik <strong>"Putar Lagu"</strong>.</li>
+                              </ol>
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>

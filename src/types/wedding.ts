@@ -98,6 +98,27 @@ export type AppViewMode = 'guest' | 'client' | 'admin';
 
 export type ColorThemeKey = 'gold' | 'emerald' | 'rose' | 'slate';
 
+export type InvitationTemplateId =
+  | 'minang-royal'
+  | 'javanese-royal'
+  | 'modern-minimalist'
+  | 'islamic-emerald'
+  | 'rustic-botanical'
+  | 'luxury-gold';
+
+export interface TemplateMeta {
+  id: InvitationTemplateId;
+  name: string;
+  tagline: string;
+  badge: string;
+  accentColor: string;
+  secondaryColor: string;
+  description: string;
+  fontFamilyClass: string;
+  ornamentType: 'minang' | 'gunungan' | 'minimalist' | 'arabesque' | 'botanical' | 'luxury';
+  previewBgClass: string;
+}
+
 export interface MusicTrack {
   id: string;
   title: string;
@@ -111,6 +132,8 @@ export interface MusicTrack {
 export interface WeddingConfig {
   coupleNames?: string;
   heroImageUrl?: string;
+  openingCoverPhotoUrl?: string;
+  templateId?: InvitationTemplateId;
   groom: PersonInfo;
   bride: PersonInfo;
   eventDateISO: string; // "2026-10-24T08:00:00+07:00"
@@ -135,4 +158,26 @@ export interface WeddingConfig {
     name: string;
     phone: string;
   }[];
+  // Photo Scale & Ratio Customization Settings
+  openingCoverRatio?: 'arched' | '1:1' | '3:4' | '4:5' | '2:3' | 'circle';
+  openingCoverScale?: number; // 80 - 150 (%)
+  couplePhotoRatio?: 'arched' | 'portrait' | 'square' | '4:5' | 'circle';
+  couplePhotoScale?: number; // 80 - 150 (%)
+  galleryRatio?: '4:5' | 'square' | '4:3' | '16:9' | '3:2' | 'portrait';
+  galleryPhotoSize?: 'small' | 'medium' | 'large';
+  galleryAnimationEnabled?: boolean;
+  galleryAnimationSpeed?: 'slow' | 'normal' | 'fast';
 }
+
+export interface WeddingProject {
+  id: string;
+  slug: string; // Unique URL identifier e.g. "maya-arya", "dimas-anita"
+  title: string;
+  templateId: InvitationTemplateId;
+  config: WeddingConfig;
+  guests: GuestItem[];
+  rsvps: RSVPRecord[];
+  createdAt: string;
+  updatedAt: string;
+}
+

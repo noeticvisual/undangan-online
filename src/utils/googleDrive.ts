@@ -68,3 +68,45 @@ export function formatGoogleDriveThumbnailUrl(url: string | undefined, size = 16
   }
   return formatImageUrl(url);
 }
+
+/**
+ * Transforms any Google Drive URL or direct link into a streaming-compatible audio URL.
+ * Works seamlessly with:
+ * - https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+ * - https://drive.google.com/file/d/FILE_ID/view
+ * - https://drive.google.com/open?id=FILE_ID
+ * - https://drive.google.com/uc?id=FILE_ID
+ * - Regular direct MP3 / AAC / OGG URLs
+ */
+export function formatAudioUrl(url: string | undefined): string {
+  if (!url || typeof url !== 'string' || !url.trim()) return '';
+  const trimmed = url.trim();
+  const driveId = extractGoogleDriveFileId(trimmed);
+  if (driveId) {
+    return `/api/audio-proxy?url=${encodeURIComponent(trimmed)}`;
+  }
+  return trimmed;
+}
+
+/**
+ * Returns prioritized array of streaming endpoints for a Google Drive audio ID
+ */
+export function getGoogleDriveAudioCandidates(url: string | undefined): string[] {
+  if (!url || typeof url !== 'string' || !url.trim()) return [];
+  const trimmed = url.trim();
+  const driveId = extractGoogleDriveFileId(trimmed);
+  if (!driveId) {
+    return [
+      trimmed,
+      `/api/audio-proxy?url=${encodeURIComponent(trimmed)}`,
+    ];
+  }
+
+  return [
+    `/api/audio-proxy?url=${encodeURIComponent(trimmed)}`,
+    `/api/drive-audio?id=${driveId}`,
+    `https://drive.usercontent.google.com/download?id=${driveId}&export=download&confirm=t`,
+    `https://docs.google.com/uc?export=download&id=${driveId}&confirm=t`,
+  ];
+}
+

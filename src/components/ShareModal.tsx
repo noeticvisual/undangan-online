@@ -6,18 +6,33 @@ interface ShareModalProps {
   config: WeddingConfig;
   isOpen: boolean;
   onClose: () => void;
+  projectSlug?: string;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ config, isOpen, onClose }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ config, isOpen, onClose, projectSlug }) => {
   const [recipientName, setRecipientName] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedFullText, setCopiedFullText] = useState(false);
 
   if (!isOpen) return null;
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : 'https://niskala-wedding.com';
-  const customParam = recipientName.trim() ? `?to=${encodeURIComponent(recipientName.trim())}` : '';
-  const shareableUrl = `${baseUrl}${customParam}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://niskala-wedding.com';
+  const slugQuery = projectSlug ? `u=${encodeURIComponent(projectSlug)}` : '';
+  const toQuery = recipientName.trim() ? `to=${encodeURIComponent(recipientName.trim())}` : '';
+  const portalQuery = 'portal=guest';
+  const queryString = [slugQuery, toQuery, portalQuery].filter(Boolean).join('&');
+  const shareableUrl = `${origin}/?${queryString}`;
+
+  const eventsText = config.events
+    .map((ev, i) => {
+      const title = ev.title || (i === 0 ? 'Akad Nikah' : 'Resepsi Pernikahan');
+      return `📅 *${title}*
+Hari/Tanggal: ${ev.dateFormatted}
+Waktu: Pukul ${ev.startTime} - ${ev.endTime} ${ev.timezone}
+Tempat: ${ev.venueName}
+Alamat: ${ev.venueAddress}`;
+    })
+    .join('\n\n');
 
   const messageTemplate = `Kepada Yth.
 ${recipientName.trim() || 'Bapak/Ibu/Saudara/i'}
@@ -26,13 +41,14 @@ Assalamu’alaikum Warahmatullahi Wabarakatuh / Salam Sejahtera,
 
 Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i untuk menghadiri dan memberikan doa restu pada pernikahan kami:
 
-${config.groom.fullName} & ${config.bride.fullName}
+*${config.groom.fullName}* & *${config.bride.fullName}*
 
-Yang insyaAllah akan diselenggarakan pada:
-Hari/Tanggal: ${config.events[0]?.dateFormatted}
-Lokasi: ${config.events[0]?.venueName}
+Rangkaian Acara:
+
+${eventsText}
 
 Informasi lengkap dan konfirmasi kehadiran (RSVP) dapat diakses melalui tautan undangan digital kami:
+
 ${shareableUrl}
 
 Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir.

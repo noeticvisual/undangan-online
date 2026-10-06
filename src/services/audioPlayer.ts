@@ -10,8 +10,25 @@
  */
 
 import { MusicTrack } from '../types/wedding';
+import { formatAudioUrl, getGoogleDriveAudioCandidates } from '../utils/googleDrive';
 
 export const AVAILABLE_WEDDING_TRACKS: MusicTrack[] = [
+  {
+    id: 'minang_saluang_talempong',
+    title: 'Saluang & Talempong Alek Minang',
+    artist: 'Ansambel Tradisional Minangkabau',
+    genre: 'gamelan',
+    description: 'Alunan tiupan saluang bambu nan syahdu dan tabuhan merdu talempong pacik baralek gadang khas Minang.',
+    durationFormatted: '03:50',
+  },
+  {
+    id: 'bapisah_bacarai_strings',
+    title: 'Bapisah Bukannyo Bacarai (Harp & Strings)',
+    artist: 'Melodi Pusaka Ranah Minang',
+    genre: 'strings',
+    description: 'Harmoni gesekan biola romantis klasik berpadu tiupan saluang, membawakan rasa syukur khidmat.',
+    durationFormatted: '04:05',
+  },
   {
     id: 'canon_in_d',
     title: 'Canon in D (Acoustic Harp)',
@@ -430,14 +447,35 @@ class RomanticWeddingSynth {
         if (!this.audioElement) {
           this.audioElement = new Audio();
           this.audioElement.loop = true;
-          this.audioElement.crossOrigin = 'anonymous';
           this.audioElement.volume = this.volume;
         }
-        this.audioElement.src = this.customAudioUrl;
-        this.audioElement.play().catch(() => {
-          // If custom URL fails to play (CORS, 404, etc.), fallback seamlessly to Canon in D synth!
-          this.scheduleLoop();
-        });
+
+        const candidates = getGoogleDriveAudioCandidates(this.customAudioUrl);
+        let currentCandidateIndex = 0;
+
+        const tryPlayCandidate = (index: number) => {
+          if (!this.audioElement) return;
+          if (index >= candidates.length) {
+            // All candidates failed, fallback gracefully to romantic synth!
+            console.warn('[AudioEngine] All audio candidates failed, using synth melody fallback');
+            this.scheduleLoop();
+            return;
+          }
+
+          const targetSrc = candidates[index];
+          this.audioElement.src = targetSrc;
+          this.audioElement.onerror = () => {
+            currentCandidateIndex++;
+            tryPlayCandidate(currentCandidateIndex);
+          };
+
+          this.audioElement.play().catch(() => {
+            currentCandidateIndex++;
+            tryPlayCandidate(currentCandidateIndex);
+          });
+        };
+
+        tryPlayCandidate(0);
       } else {
         this.scheduleLoop();
       }

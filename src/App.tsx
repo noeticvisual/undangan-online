@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { WeddingConfig, RSVPRecord, WeddingEvent, GuestItem, AppViewMode } from './types/wedding';
-import { DEFAULT_WEDDING_CONFIG, INITIAL_RSVPS, INITIAL_GUESTS } from './data/defaultWeddingData';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  WeddingConfig,
+  RSVPRecord,
+  GuestItem,
+  WeddingEvent,
+  AppViewMode,
+  WeddingProject,
+} from './types/wedding';
+import { DEFAULT_WEDDING_CONFIG } from './data/defaultWeddingData';
 import { weddingMusicEngine } from './services/audioPlayer';
-import { supabaseWeddingService } from './services/supabase';
+import { projectManager } from './services/projectManager';
+import { getTemplateThemeClasses, INVITATION_TEMPLATES } from './data/templateThemes';
+
+// Modular UI Components
 import { OpeningEnvelopeModal } from './components/OpeningEnvelopeModal';
 import { HeaderNavbar } from './components/HeaderNavbar';
 import { HeroSection } from './components/HeroSection';
@@ -12,11 +22,11 @@ import { LoveStorySection } from './components/LoveStorySection';
 import { GallerySection } from './components/GallerySection';
 import { RsvpSection } from './components/RsvpSection';
 import { GiftRegistrySection } from './components/GiftRegistrySection';
+import { FloatingNav } from './components/FloatingNav';
+import { CalendarExportModal } from './components/CalendarExportModal';
 import { DigitalPassModal } from './components/DigitalPassModal';
 import { ShareModal } from './components/ShareModal';
-import { CalendarExportModal } from './components/CalendarExportModal';
 import { CustomizerModal } from './components/CustomizerModal';
-import { FloatingNav } from './components/FloatingNav';
 import { FooterSection } from './components/FooterSection';
 import { ClientGuestPortal } from './components/ClientGuestPortal';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -24,7 +34,46 @@ import { AccessLoginModal } from './components/AccessLoginModal';
 import { MusicSwitcherModal } from './components/MusicSwitcherModal';
 
 export default function App() {
-  // Session & local authorization states for protected portals
+  // 1. Multi-client Projects State
+  const [projects, setProjects] = useState<WeddingProject[]>(() => projectManager.getAllProjects());
+
+  // 2. Active project slug from URL or fallback
+  const [activeSlug, setActiveSlug] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const uParam =
+        params.get('u') ||
+        params.get('invitation') ||
+        params.get('project') ||
+        params.get('wedding') ||
+        params.get('slug');
+      if (uParam) {
+        const found = projectManager.getProjectBySlug(uParam);
+        if (found) return found.slug;
+        return uParam.trim().toLowerCase();
+      }
+    }
+    return projectManager.getActiveProjectSlug();
+  });
+
+  const refreshProjects = () => {
+    setProjects(projectManager.getAllProjects());
+  };
+
+  // 3. Active project computation
+  const activeProject: WeddingProject = useMemo(() => {
+    const found = projects.find((p) => p.slug.toLowerCase() === activeSlug.toLowerCase());
+    return found || projects[0] || projectManager.getAllProjects()[0];
+  }, [projects, activeSlug]);
+
+  const config: WeddingConfig = activeProject.config;
+  const guests: GuestItem[] = activeProject.guests || [];
+  const rsvps: RSVPRecord[] = activeProject.rsvps || [];
+
+  // Theme styling for the active template
+  const themeClasses = getTemplateThemeClasses(activeProject.templateId || config.templateId || 'javanese-royal');
+
+  // 4. Session & local authorization states for protected portals
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     try {
       return (
@@ -39,22 +88,88 @@ export default function App() {
   const [isClientAuthenticated, setIsClientAuthenticated] = useState<boolean>(() => {
     try {
       return (
-        localStorage.getItem('niskala_auth_client') === 'true' ||
-        sessionStorage.getItem('niskala_auth_client') === 'true'
+        localStorage.getItem(`niskala_auth_client_${activeSlug}`) === 'true' ||
+        sessionStorage.getItem(`niskala_auth_client_${activeSlug}`) === 'true'
       );
     } catch {
       return false;
     }
   });
 
-  // 1. View mode routing: 'guest' | 'client' | 'admin'
+  // Track preview return origin (admin or client)
+  const [previewReturnMode, setPreviewReturnMode] = useState<'admin' | 'client' | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = (sessionStorage.getItem('niskala_preview_origin') || localStorage.getItem('niskala_preview_origin')) as any;
+        if (stored === 'admin' || stored === 'client') return stored;
+      } catch {}
+    }
+    return null;
+  });
+
+  // Sync projects from server on mount & ensure active slug from URL is fetched
+  useEffect(() => {
+    projectManager.syncFromServer().then((synced) => {
+      if (synced && synced.length > 0) {
+        setProjects(synced);
+      }
+    });
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const uParam =
+        params.get('u') ||
+        params.get('invitation') ||
+        params.get('project') ||
+        params.get('wedding') ||
+        params.get('slug');
+      if (uParam) {
+        projectManager.fetchProjectBySlug(uParam).then((proj) => {
+          if (proj) {
+            setActiveSlug(proj.slug);
+            setProjects(projectManager.getAllProjects());
+          }
+        });
+      }
+    }
+  }, []);
+
+  // Re-sync client authorization whenever the active project changes
+  useEffect(() => {
+    try {
+      const isAuth =
+        localStorage.getItem(`niskala_auth_client_${activeSlug}`) === 'true' ||
+        sessionStorage.getItem(`niskala_auth_client_${activeSlug}`) === 'true';
+      setIsClientAuthenticated(isAuth);
+    } catch {
+      setIsClientAuthenticated(false);
+    }
+  }, [activeSlug]);
+
+  // 5. View mode routing: 'guest' | 'client' | 'admin'
   const [viewMode, setViewMode] = useState<AppViewMode>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const portalParam = params.get('portal') || params.get('mode') || params.get('page');
+      const hash = window.location.hash.toLowerCase();
       const path = window.location.pathname.toLowerCase();
-      if (portalParam === 'admin' || window.location.hash === '#admin' || path.endsWith('/admin')) return 'admin';
-      if (portalParam === 'client' || window.location.hash === '#client' || path.endsWith('/client')) return 'client';
+
+      // 1. Explicit guest invitation: if the link has ?to= or ?portal=guest, it is 100% guest view!
+      if (params.has('to') || portalParam === 'guest' || hash === '#guest') {
+        return 'guest';
+      }
+
+      // 2. Check URL query parameters and hashes for admin or client
+      if (portalParam === 'admin' || hash === '#admin' || path.endsWith('/admin')) return 'admin';
+      if (portalParam === 'client' || hash === '#client' || path.endsWith('/client')) return 'client';
+
+      // 3. Persistent storage ONLY when not visiting a guest invitation link!
+      try {
+        const storedMode = (localStorage.getItem('niskala_view_mode') || sessionStorage.getItem('niskala_view_mode')) as AppViewMode | null;
+        if (storedMode === 'admin' || storedMode === 'client') {
+          return storedMode;
+        }
+      } catch {}
     }
     return 'guest';
   });
@@ -65,13 +180,29 @@ export default function App() {
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         const portalParam = params.get('portal') || params.get('mode') || params.get('page');
+        const hash = window.location.hash.toLowerCase();
         const path = window.location.pathname.toLowerCase();
-        if (portalParam === 'admin' || window.location.hash === '#admin' || path.endsWith('/admin')) {
-          setViewMode('admin');
-        } else if (portalParam === 'client' || window.location.hash === '#client' || path.endsWith('/client')) {
-          setViewMode('client');
-        } else if (portalParam === 'guest' || (!portalParam && !window.location.hash && !path.endsWith('/admin') && !path.endsWith('/client'))) {
+
+        // Check if project slug changed
+        const uParam =
+          params.get('u') ||
+          params.get('invitation') ||
+          params.get('project') ||
+          params.get('wedding') ||
+          params.get('slug');
+        if (uParam) {
+          const found = projectManager.getProjectBySlug(uParam);
+          if (found && found.slug !== activeSlug) {
+            setActiveSlug(found.slug);
+          }
+        }
+
+        if (params.has('to') || portalParam === 'guest' || hash === '#guest') {
           setViewMode('guest');
+        } else if (portalParam === 'admin' || hash === '#admin' || path.endsWith('/admin')) {
+          setViewMode('admin');
+        } else if (portalParam === 'client' || hash === '#client' || path.endsWith('/client')) {
+          setViewMode('client');
         }
       }
     };
@@ -82,57 +213,101 @@ export default function App() {
       window.removeEventListener('popstate', handleUrlChange);
       window.removeEventListener('hashchange', handleUrlChange);
     };
-  }, []);
+  }, [activeSlug]);
+
+  // Keep viewMode synced to localStorage and URL query/hash so refresh never resets to guest
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('niskala_view_mode', viewMode);
+        sessionStorage.setItem('niskala_view_mode', viewMode);
+      } catch {}
+
+      const url = new URL(window.location.href);
+      if (activeSlug) {
+        url.searchParams.set('u', activeSlug);
+      }
+
+      if (viewMode === 'admin') {
+        url.searchParams.set('portal', 'admin');
+        if (window.location.hash !== '#admin') {
+          window.location.hash = 'admin';
+        }
+      } else if (viewMode === 'client') {
+        url.searchParams.set('portal', 'client');
+        if (window.location.hash !== '#client') {
+          window.location.hash = 'client';
+        }
+      } else if (viewMode === 'guest') {
+        url.searchParams.delete('portal');
+        url.searchParams.delete('mode');
+        if (window.location.hash === '#admin' || window.location.hash === '#client') {
+          window.history.replaceState(null, '', url.pathname + (url.search ? url.search : ''));
+        }
+      }
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [viewMode, activeSlug]);
+
+  const changeActiveProject = (newSlug: string) => {
+    setActiveSlug(newSlug);
+    projectManager.setActiveProjectSlug(newSlug);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('u', newSlug);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
 
   const changeViewMode = (mode: AppViewMode) => {
     setViewMode(mode);
+    try {
+      localStorage.setItem('niskala_view_mode', mode);
+      sessionStorage.setItem('niskala_view_mode', mode);
+    } catch {}
+
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
+      if (activeSlug) {
+        url.searchParams.set('u', activeSlug);
+      }
       if (mode === 'guest') {
         url.searchParams.delete('portal');
         url.searchParams.delete('mode');
-        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+        if (window.location.hash === '#admin' || window.location.hash === '#client') {
+          window.history.replaceState(null, '', url.pathname + (url.search ? url.search : ''));
+        } else {
+          window.history.replaceState({}, '', url.toString());
+        }
       } else {
         url.searchParams.set('portal', mode);
+        window.location.hash = mode;
         window.history.replaceState({}, '', url.toString());
       }
     }
   };
 
-  // 2. Config state with localStorage & Supabase persistence
-  const [config, setConfig] = useState<WeddingConfig>(() => {
+  const handleOpenPreview = (origin: 'admin' | 'client') => {
+    setPreviewReturnMode(origin);
+    setIsEnvelopeOpen(true);
     try {
-      const saved = localStorage.getItem('niskala_wedding_config');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // Fallback
-    }
-    return DEFAULT_WEDDING_CONFIG;
-  });
+      sessionStorage.setItem('niskala_preview_origin', origin);
+      localStorage.setItem('niskala_preview_origin', origin);
+    } catch {}
+    changeViewMode('guest');
+  };
 
-  // 3. RSVP records state with localStorage & Supabase persistence
-  const [rsvps, setRsvps] = useState<RSVPRecord[]>(() => {
+  const handleReturnFromPreview = () => {
+    const target = previewReturnMode || (isAdminAuthenticated ? 'admin' : isClientAuthenticated ? 'client' : 'admin');
+    setPreviewReturnMode(null);
     try {
-      const saved = localStorage.getItem('niskala_wedding_rsvps');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // Fallback
-    }
-    return INITIAL_RSVPS;
-  });
+      sessionStorage.removeItem('niskala_preview_origin');
+      localStorage.removeItem('niskala_preview_origin');
+    } catch {}
+    changeViewMode(target);
+  };
 
-  // 4. Client's Guest List state with localStorage & Supabase persistence
-  const [guests, setGuests] = useState<GuestItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('niskala_client_guests');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // Fallback
-    }
-    return INITIAL_GUESTS;
-  });
-
-  // 5. Detect guest name from URL query parameter (?to=Budi or ?tamu=dr.+Anisa)
+  // 6. Detect guest name from URL query parameter (?to=Budi or ?tamu=dr.+Anisa)
   const [guestName, setGuestName] = useState<string>('Tamu Undangan Terhormat');
 
   useEffect(() => {
@@ -143,35 +318,6 @@ export default function App() {
         setGuestName(nameParam.trim());
       }
     }
-  }, []);
-
-  // 6. Supabase Initial Cloud Sync on Mount
-  useEffect(() => {
-    const syncFromSupabase = async () => {
-      try {
-        const cloudConfig = await supabaseWeddingService.fetchWeddingConfig();
-        if (cloudConfig) {
-          setConfig(cloudConfig);
-          localStorage.setItem('niskala_wedding_config', JSON.stringify(cloudConfig));
-        }
-
-        const cloudGuests = await supabaseWeddingService.fetchGuests();
-        if (cloudGuests && cloudGuests.length > 0) {
-          setGuests(cloudGuests);
-          localStorage.setItem('niskala_client_guests', JSON.stringify(cloudGuests));
-        }
-
-        const cloudRsvps = await supabaseWeddingService.fetchRsvps();
-        if (cloudRsvps && cloudRsvps.length > 0) {
-          setRsvps(cloudRsvps);
-          localStorage.setItem('niskala_wedding_rsvps', JSON.stringify(cloudRsvps));
-        }
-      } catch {
-        // Fallback to local storage
-      }
-    };
-
-    syncFromSupabase();
   }, []);
 
   // 7. Dark mode state
@@ -207,7 +353,7 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  // Sync initial music track from config if specified
+  // Sync initial music track from active config if specified
   useEffect(() => {
     if (config.selectedTrackId) {
       weddingMusicEngine.setTrack(config.selectedTrackId, config.customAudioUrl);
@@ -219,26 +365,20 @@ export default function App() {
     setIsMusicPlaying(newState);
   };
 
-  const handleOpenInvitation = () => {
-    setIsEnvelopeOpen(false);
-    weddingMusicEngine.start();
-    setIsMusicPlaying(true);
-  };
-
-  // 10. Modals state
-  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  // 10. Floating Modals states
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [calendarTargetEvent, setCalendarTargetEvent] = useState<WeddingEvent | undefined>(config.events[0]);
   const [isQrPassOpen, setIsQrPassOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [calendarTargetEvent, setCalendarTargetEvent] = useState<WeddingEvent | null>(null);
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
 
-  const handleOpenCalendarForEvent = (ev: WeddingEvent) => {
-    setCalendarTargetEvent(ev);
+  const handleOpenCalendarForEvent = (event: WeddingEvent) => {
+    setCalendarTargetEvent(event);
     setIsCalendarOpen(true);
   };
 
-  // 11. RSVP handler (Guest submission)
+  // 11. RSVP handler (Guest submission) - strictly isolated to active project
   const handleAddRsvp = (record: Omit<RSVPRecord, 'id' | 'createdAt'>) => {
     const newRecord: RSVPRecord = {
       ...record,
@@ -246,23 +386,15 @@ export default function App() {
       createdAt: new Date().toISOString(),
     };
 
-    const updated = [newRecord, ...rsvps];
-    setRsvps(updated);
-    try {
-      localStorage.setItem('niskala_wedding_rsvps', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
+    projectManager.addRsvp(activeSlug, newRecord);
+    refreshProjects();
 
-    // Sync to Supabase in background
-    supabaseWeddingService.saveRsvp(newRecord).catch(() => {});
-
-    // Sync to backend endpoint
+    // Background sync to backend proxy endpoint if configured
     try {
       fetch('/api/rsvp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRecord),
+        body: JSON.stringify({ ...newRecord, projectSlug: activeSlug }),
       }).catch(() => {});
     } catch {
       // ignore
@@ -270,31 +402,23 @@ export default function App() {
   };
 
   const handleDeleteRsvp = (id: string) => {
-    const updated = rsvps.filter((r) => r.id !== id);
-    setRsvps(updated);
-    try {
-      localStorage.setItem('niskala_wedding_rsvps', JSON.stringify(updated));
-    } catch {
-      // ignore
+    const currentProj = projectManager.getProjectBySlug(activeSlug);
+    if (currentProj) {
+      const filtered = (currentProj.rsvps || []).filter((r) => r.id !== id);
+      projectManager.updateProject(currentProj.id, { rsvps: filtered });
+      refreshProjects();
     }
-    supabaseWeddingService.deleteRsvp(id).catch(() => {});
   };
 
-  // 12. Client Guest Management handlers
+  // 12. Client Guest Management handlers - strictly isolated to active project
   const handleAddGuest = (guest: Omit<GuestItem, 'id' | 'createdAt'>) => {
     const newGuest: GuestItem = {
       ...guest,
       id: `guest-${Date.now()}`,
       createdAt: new Date().toISOString(),
     };
-    const updated = [newGuest, ...guests];
-    setGuests(updated);
-    try {
-      localStorage.setItem('niskala_client_guests', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-    supabaseWeddingService.saveGuest(newGuest).catch(() => {});
+    projectManager.addGuest(activeSlug, newGuest);
+    refreshProjects();
   };
 
   const handleBulkAddGuests = (names: string[], category: string) => {
@@ -304,53 +428,31 @@ export default function App() {
       category,
       createdAt: new Date().toISOString(),
     }));
-    const updated = [...newGuests, ...guests];
-    setGuests(updated);
-    try {
-      localStorage.setItem('niskala_client_guests', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-    newGuests.forEach((g) => supabaseWeddingService.saveGuest(g).catch(() => {}));
+    projectManager.bulkAddGuests(activeSlug, newGuests);
+    refreshProjects();
   };
 
   const handleDeleteGuest = (id: string) => {
-    const updated = guests.filter((g) => g.id !== id);
-    setGuests(updated);
-    try {
-      localStorage.setItem('niskala_client_guests', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-    supabaseWeddingService.deleteGuest(id).catch(() => {});
+    projectManager.deleteGuest(activeSlug, id);
+    refreshProjects();
   };
 
-  // 13. Admin Config Save and Reset
+  // 13. Admin Config Save and Reset - strictly saved to active project
   const handleSaveConfig = (newConfig: WeddingConfig) => {
-    setConfig(newConfig);
-    try {
-      localStorage.setItem('niskala_wedding_config', JSON.stringify(newConfig));
-    } catch {
-      // ignore
-    }
-    supabaseWeddingService.saveWeddingConfig(newConfig).catch(() => {});
+    projectManager.updateProjectConfig(activeSlug, newConfig);
+    refreshProjects();
   };
 
   const handleResetDefault = () => {
-    setConfig(DEFAULT_WEDDING_CONFIG);
-    try {
-      localStorage.removeItem('niskala_wedding_config');
-    } catch {
-      // ignore
-    }
-    supabaseWeddingService.saveWeddingConfig(DEFAULT_WEDDING_CONFIG).catch(() => {});
+    projectManager.updateProjectConfig(activeSlug, DEFAULT_WEDDING_CONFIG);
+    refreshProjects();
   };
 
   // =========================================================================
   // VIEW: CLIENT PORTAL (Pengantin mengelola daftar tamu & membagikan link)
   // =========================================================================
   if (viewMode === 'client') {
-    // Gate: Require client authentication
+    // Gate: Require client authentication with this project's passcode
     if (!isClientAuthenticated) {
       return (
         <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] flex items-center justify-center p-4">
@@ -363,8 +465,10 @@ export default function App() {
             onSelectRole={(role) => {
               if (role === 'client') {
                 try {
-                  localStorage.setItem('niskala_auth_client', 'true');
-                  sessionStorage.setItem('niskala_auth_client', 'true');
+                  localStorage.setItem(`niskala_auth_client_${activeSlug}`, 'true');
+                  sessionStorage.setItem(`niskala_auth_client_${activeSlug}`, 'true');
+                  localStorage.setItem('niskala_view_mode', 'client');
+                  sessionStorage.setItem('niskala_view_mode', 'client');
                 } catch {}
                 setIsClientAuthenticated(true);
               }
@@ -379,21 +483,23 @@ export default function App() {
         {/* Floating Client Top Bar */}
         <div className="sticky top-2 z-50 max-w-fit mx-auto bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-2 text-xs mb-2">
           <button
-            onClick={() => changeViewMode('guest')}
+            onClick={() => handleOpenPreview('client')}
             className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all cursor-pointer"
           >
-            ← Undangan Tamu
+            👁️ Pratinjau Undangan
           </button>
           <span className="text-[#D9CEBF]">|</span>
           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#B89047] text-white shadow-xs">
-            Portal Klien (Pengantin)
+            Portal Klien: {config.groom.nickName} &amp; {config.bride.nickName}
           </span>
           <span className="text-[#D9CEBF]">|</span>
           <button
             onClick={() => {
               try {
-                localStorage.removeItem('niskala_auth_client');
-                sessionStorage.removeItem('niskala_auth_client');
+                localStorage.removeItem(`niskala_auth_client_${activeSlug}`);
+                sessionStorage.removeItem(`niskala_auth_client_${activeSlug}`);
+                localStorage.setItem('niskala_view_mode', 'guest');
+                sessionStorage.setItem('niskala_view_mode', 'guest');
               } catch {}
               setIsClientAuthenticated(false);
               changeViewMode('guest');
@@ -408,12 +514,13 @@ export default function App() {
           config={config}
           guests={guests}
           rsvps={rsvps}
+          projectSlug={activeSlug}
           onAddGuest={handleAddGuest}
           onBulkAddGuests={handleBulkAddGuests}
           onDeleteGuest={handleDeleteGuest}
-          onBackToInvitation={() => changeViewMode('guest')}
+          onBackToInvitation={() => handleOpenPreview('client')}
           onOpenMusicModal={() => setIsMusicModalOpen(true)}
-          onOpenCustomizer={() => setIsCustomizerOpen(true)}
+          onUpdateConfig={handleSaveConfig}
         />
 
         {/* Music Switcher Modal for Client */}
@@ -454,6 +561,8 @@ export default function App() {
                 try {
                   localStorage.setItem('niskala_auth_admin', 'true');
                   sessionStorage.setItem('niskala_auth_admin', 'true');
+                  localStorage.setItem('niskala_view_mode', 'admin');
+                  sessionStorage.setItem('niskala_view_mode', 'admin');
                 } catch {}
                 setIsAdminAuthenticated(true);
               }
@@ -468,10 +577,10 @@ export default function App() {
         {/* Floating Admin Top Bar */}
         <div className="sticky top-2 z-50 max-w-fit mx-auto bg-[#FAF7F2]/95 dark:bg-[#121615]/95 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#D9CEBF] dark:border-[#2F3D36] shadow-md flex items-center gap-2 text-xs mb-2">
           <button
-            onClick={() => changeViewMode('guest')}
+            onClick={() => handleOpenPreview('admin')}
             className="px-2.5 py-0.5 rounded-full text-[11px] font-medium text-[#5C5046] dark:text-[#BFAF9E] hover:text-[#B89047] transition-all cursor-pointer"
           >
-            ← Undangan Tamu
+            👁️ Pratinjau Undangan
           </button>
           <span className="text-[#D9CEBF]">|</span>
           <button
@@ -490,6 +599,8 @@ export default function App() {
               try {
                 localStorage.removeItem('niskala_auth_admin');
                 sessionStorage.removeItem('niskala_auth_admin');
+                localStorage.setItem('niskala_view_mode', 'guest');
+                sessionStorage.setItem('niskala_view_mode', 'guest');
               } catch {}
               setIsAdminAuthenticated(false);
               changeViewMode('guest');
@@ -503,10 +614,14 @@ export default function App() {
         <AdminDashboard
           config={config}
           rsvps={rsvps}
+          projects={projects}
+          activeProjectSlug={activeSlug}
+          onSelectProject={changeActiveProject}
+          onRefreshProjects={refreshProjects}
           onSaveConfig={handleSaveConfig}
           onResetDefault={handleResetDefault}
           onDeleteRsvp={handleDeleteRsvp}
-          onBackToInvitation={() => changeViewMode('guest')}
+          onBackToInvitation={() => handleOpenPreview('admin')}
         />
       </div>
     );
@@ -515,26 +630,92 @@ export default function App() {
   // =========================================================================
   // VIEW: GUEST INVITATION (Tamu hanya melihat undangan - Bersih & Khidmat)
   // =========================================================================
+  const isGuestView = viewMode === 'guest';
+
   return (
-    <div className="min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA] transition-colors duration-300 relative selection:bg-[#B89047]/30">
+    <div className={`min-h-screen bg-[#FAF7F2] dark:bg-[#121615] text-[#2C2724] dark:text-[#F3EEEA] transition-colors duration-300 relative selection:bg-[#B89047]/30 ${themeClasses.wrapper}`}>
+      
+      {/* Floating Preview Return Bar (ONLY when explicitly previewing from Admin or Client, NEVER for guests) */}
+      {previewReturnMode !== null && (
+        <aside
+          aria-label="Mode Pratinjau Undangan"
+          className="sticky top-2 z-50 max-w-2xl mx-auto px-4 py-2 bg-gradient-to-r from-[#2B1B17] via-[#3A241C] to-[#2B1B17] text-[#FAF7F2] rounded-full shadow-2xl border border-[#C5A059]/70 flex items-center justify-between gap-3 text-xs backdrop-blur-md animate-fadeIn mb-2"
+        >
+          <div className="flex items-center gap-2 truncate">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="font-semibold text-[#E5CA78] truncate text-[11px] sm:text-xs">
+              👁️ Pratinjau Undangan: {config.groom.nickName} &amp; {config.bride.nickName}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Quick Envelope Re-open button */}
+            <button
+              type="button"
+              onClick={() => setIsEnvelopeOpen(true)}
+              className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[#FAF7F2] text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1"
+              title="Buka kembali tampilan amplop pembuka untuk tamu"
+            >
+              ✉️ Amplop
+            </button>
+
+            {previewReturnMode === 'admin' && (
+              <button
+                type="button"
+                onClick={handleReturnFromPreview}
+                className="px-3 py-1 rounded-full bg-[#C5A059] hover:bg-[#D4AF37] text-[#1E140F] font-bold text-[11px] transition-all cursor-pointer shadow-xs flex items-center gap-1"
+              >
+                ← Kembali ke Dashboard Admin
+              </button>
+            )}
+            {previewReturnMode === 'client' && (
+              <button
+                type="button"
+                onClick={handleReturnFromPreview}
+                className="px-3 py-1 rounded-full bg-[#C5A059] hover:bg-[#D4AF37] text-[#1E140F] font-bold text-[11px] transition-all cursor-pointer shadow-xs flex items-center gap-1"
+              >
+                ← Kembali ke Portal Klien
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setPreviewReturnMode(null);
+                try {
+                  sessionStorage.removeItem('niskala_preview_origin');
+                  localStorage.removeItem('niskala_preview_origin');
+                } catch {}
+              }}
+              title="Tutup mode pratinjau"
+              className="text-[#D9CEBF] hover:text-white text-xs p-1 rounded-full cursor-pointer ml-1"
+            >
+              ✕
+            </button>
+          </div>
+        </aside>
+      )}
+
       {/* 1. Opening Cover Envelope Modal */}
       <OpeningEnvelopeModal
         config={config}
         guestName={guestName}
         isOpen={isEnvelopeOpen}
-        onOpenInvitation={handleOpenInvitation}
-        onOpenMusicModal={() => setIsMusicModalOpen(true)}
+        isGuest={isGuestView}
+        onOpenInvitation={() => {
+          setIsEnvelopeOpen(false);
+          weddingMusicEngine.start();
+        }}
+        onOpenMusicModal={isGuestView ? undefined : () => setIsMusicModalOpen(true)}
       />
 
-      {/* 2. Top Bar Navigation (Strict 3-Zone Contract) */}
+      {/* 2. Top Header Navigation (Guest view will NEVER have customizer/photo changer) */}
       <HeaderNavbar
         config={config}
         isDarkMode={isDarkMode}
         onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
         isMusicPlaying={isMusicPlaying}
         onToggleMusic={handleToggleMusic}
-        onOpenMusicModal={() => setIsMusicModalOpen(true)}
-        onOpenCustomizer={() => setIsCustomizerOpen(true)}
+        onOpenMusicModal={isGuestView ? undefined : () => setIsMusicModalOpen(true)}
+        onOpenCustomizer={isGuestView ? undefined : () => setIsCustomizerOpen(true)}
         onOpenQrPass={() => setIsQrPassOpen(true)}
         onOpenShare={() => setIsShareOpen(true)}
         onOpenPortalLogin={() => setIsAccessModalOpen(true)}
@@ -564,7 +745,11 @@ export default function App() {
         <LoveStorySection config={config} />
 
         {/* 7. Photo Gallery with Fullscreen Lightbox */}
-        <GallerySection gallery={config.gallery} />
+        <GallerySection
+          gallery={config.gallery}
+          config={config}
+          onUpdateConfig={handleSaveConfig}
+        />
 
         {/* 8. Functional RSVP Form & Wishing Board (Tamu hanya bisa mengisi ini) */}
         <RsvpSection
@@ -580,7 +765,6 @@ export default function App() {
       {/* 10. Footer Section */}
       <FooterSection
         config={config}
-        onOpenCustomizer={() => setIsCustomizerOpen(true)}
         onOpenPortalLogin={() => setIsAccessModalOpen(true)}
       />
 
@@ -588,7 +772,7 @@ export default function App() {
       <FloatingNav
         isMusicPlaying={isMusicPlaying}
         onToggleMusic={handleToggleMusic}
-        onOpenMusicModal={() => setIsMusicModalOpen(true)}
+        onOpenMusicModal={isGuestView ? undefined : () => setIsMusicModalOpen(true)}
       />
 
       {/* 12. Music Switcher & Preview Modal */}
@@ -612,6 +796,7 @@ export default function App() {
         config={config}
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
+        projectSlug={activeSlug}
       />
 
       {/* 14. Calendar Export Modal (Google Calendar & iCal) */}
@@ -638,16 +823,25 @@ export default function App() {
         clientPasscode={config.clientPasscode}
         onSelectRole={(role) => {
           if (role === 'admin') {
-            try { sessionStorage.setItem('niskala_auth_admin', 'true'); } catch {}
+            try {
+              localStorage.setItem('niskala_auth_admin', 'true');
+              sessionStorage.setItem('niskala_auth_admin', 'true');
+              localStorage.setItem('niskala_view_mode', 'admin');
+              sessionStorage.setItem('niskala_view_mode', 'admin');
+            } catch {}
             setIsAdminAuthenticated(true);
           } else if (role === 'client') {
-            try { sessionStorage.setItem('niskala_auth_client', 'true'); } catch {}
+            try {
+              localStorage.setItem(`niskala_auth_client_${activeSlug}`, 'true');
+              sessionStorage.setItem(`niskala_auth_client_${activeSlug}`, 'true');
+              localStorage.setItem('niskala_view_mode', 'client');
+              sessionStorage.setItem('niskala_view_mode', 'client');
+            } catch {}
             setIsClientAuthenticated(true);
           }
           changeViewMode(role);
         }}
       />
-
     </div>
   );
 }

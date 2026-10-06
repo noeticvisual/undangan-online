@@ -6,7 +6,7 @@ import { AVAILABLE_WEDDING_TRACKS, weddingMusicEngine } from '../services/audioP
 interface FloatingNavProps {
   isMusicPlaying: boolean;
   onToggleMusic: () => void;
-  onOpenMusicModal: () => void;
+  onOpenMusicModal?: () => void;
 }
 
 export const FloatingNav: React.FC<FloatingNavProps> = ({
@@ -79,9 +79,9 @@ export const FloatingNav: React.FC<FloatingNavProps> = ({
 
           {/* Track Name & Info (Visible on Hover or Desktop) */}
           <div
-            onClick={onOpenMusicModal}
-            className="cursor-pointer max-w-[140px] sm:max-w-[180px] overflow-hidden select-none"
-            title="Klik untuk memilih musik lain"
+            onClick={onOpenMusicModal || undefined}
+            className={`${onOpenMusicModal ? 'cursor-pointer' : 'cursor-default'} max-w-[140px] sm:max-w-[180px] overflow-hidden select-none`}
+            title={onOpenMusicModal ? "Klik untuk memilih musik lain" : currentTrack.title}
           >
             <p className="text-[11px] font-semibold text-[#2C2724] dark:text-[#F3EEEA] truncate leading-tight">
               {currentTrack.title}
@@ -100,14 +100,16 @@ export const FloatingNav: React.FC<FloatingNavProps> = ({
             <SkipForward className="w-3.5 h-3.5" />
           </button>
 
-          {/* Open Full Music Switcher Modal Button */}
-          <button
-            onClick={onOpenMusicModal}
-            title="Pilih & Tukar Musik Latar"
-            className="p-1.5 rounded-full text-[#7C6E61] dark:text-[#A79D93] hover:text-[#B89047] dark:hover:text-[#E2C799] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-          </button>
+          {/* Open Full Music Switcher Modal Button (only for admin / host) */}
+          {onOpenMusicModal && (
+            <button
+              onClick={onOpenMusicModal}
+              title="Pilih & Tukar Musik Latar"
+              className="p-1.5 rounded-full text-[#7C6E61] dark:text-[#A79D93] hover:text-[#B89047] dark:hover:text-[#E2C799] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              <Music2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
